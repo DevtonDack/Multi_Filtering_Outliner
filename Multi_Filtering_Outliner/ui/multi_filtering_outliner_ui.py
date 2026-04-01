@@ -16,14 +16,91 @@ SETTINGS_DIR = os.path.expanduser("~/.multi_filtering_outliner")
 SETTINGS_FILE = os.path.join(SETTINGS_DIR, "multi_filtering_outliner_settings.json")
 
 
-# main.pyのFlowLayoutをインポート
+# FlowLayoutをインポート
 try:
     # EZ_ModelingTools.mainから絶対インポート
     from EZ_ModelingTools.main import FlowLayout
 except ImportError:
-    # フォールバック: シンプルなHBoxLayoutを使用
-    FlowLayout = None
-    print("Warning: FlowLayout could not be imported from main.py")
+    # フォールバック: 独自のFlowLayout実装を使用
+    class FlowLayout(QtWidgets.QLayout):
+        """ウィジェットを自動的に折り返すレイアウト"""
+        def __init__(self, parent=None, margin=0, spacing=-1):
+            super(FlowLayout, self).__init__(parent)
+            if parent is not None:
+                self.setContentsMargins(margin, margin, margin, margin)
+            self.setSpacing(spacing)
+            self.item_list = []
+
+        def __del__(self):
+            item = self.takeAt(0)
+            while item:
+                item = self.takeAt(0)
+
+        def addItem(self, item):
+            self.item_list.append(item)
+
+        def count(self):
+            return len(self.item_list)
+
+        def itemAt(self, index):
+            if 0 <= index < len(self.item_list):
+                return self.item_list[index]
+            return None
+
+        def takeAt(self, index):
+            if 0 <= index < len(self.item_list):
+                return self.item_list.pop(index)
+            return None
+
+        def expandingDirections(self):
+            return QtCore.Qt.Orientations(QtCore.Qt.Orientation(0))
+
+        def hasHeightForWidth(self):
+            return True
+
+        def heightForWidth(self, width):
+            height = self._do_layout(QtCore.QRect(0, 0, width, 0), True)
+            return height
+
+        def setGeometry(self, rect):
+            super(FlowLayout, self).setGeometry(rect)
+            self._do_layout(rect, False)
+
+        def sizeHint(self):
+            return self.minimumSize()
+
+        def minimumSize(self):
+            size = QtCore.QSize()
+            for item in self.item_list:
+                size = size.expandedTo(item.minimumSize())
+            margin = self.contentsMargins().left()
+            size += QtCore.QSize(2 * margin, 2 * margin)
+            return size
+
+        def _do_layout(self, rect, test_only):
+            x = rect.x()
+            y = rect.y()
+            line_height = 0
+
+            for item in self.item_list:
+                wid = item.widget()
+                space_x = self.spacing()
+                space_y = self.spacing()
+                next_x = x + item.sizeHint().width() + space_x
+                if next_x - space_x > rect.right() and line_height > 0:
+                    x = rect.x()
+                    y = y + line_height + space_y
+                    next_x = x + item.sizeHint().width() + space_x
+                    line_height = 0
+
+                if not test_only:
+                    item.setGeometry(QtCore.QRect(QtCore.QPoint(x, y), item.sizeHint()))
+
+                x = next_x
+                line_height = max(line_height, item.sizeHint().height())
+
+            return y + line_height - rect.y()
+    print("Multi Filtering Outliner: Using built-in FlowLayout implementation")
 
 
 
@@ -167,11 +244,11 @@ class DraggablePhraseWidget(QtWidgets.QWidget):
         layout.addWidget(self.exact_token_check)
 
         # ドラッグハンドル
-        drag_label = QtWidgets.QLabel("⋮⋮")
-        drag_label.setStyleSheet("color: gray; font-weight: bold;")
-        drag_label.setFixedWidth(20)
-        drag_label.setCursor(QtCore.Qt.OpenHandCursor)
-        layout.addWidget(drag_label)
+        self.drag_handle = QtWidgets.QLabel("⋮⋮")
+        self.drag_handle.setStyleSheet("color: gray; font-weight: bold;")
+        self.drag_handle.setFixedWidth(20)
+        self.drag_handle.setCursor(QtCore.Qt.OpenHandCursor)
+        layout.addWidget(self.drag_handle)
 
         # フレーズ入力
         self.phrase_input = QtWidgets.QLineEdit()
@@ -185,6 +262,7 @@ class DraggablePhraseWidget(QtWidgets.QWidget):
         layout.addWidget(self.remove_btn)
 
         self.drag_start_position = None
+        self.dragging_from_handle = False
 
         # 除外モード時の背景色を更新
         self.exclude_check.stateChanged.connect(self.update_background_color)
@@ -200,14 +278,20 @@ class DraggablePhraseWidget(QtWidgets.QWidget):
     def mousePressEvent(self, event):
         """マウスプレスイベント"""
         if event.button() == QtCore.Qt.LeftButton:
-            self.drag_start_position = event.pos()
+            # ドラッグハンドル上でクリックされたかチェック
+            handle_rect = self.drag_handle.geometry()
+            if handle_rect.contains(event.pos()):
+                self.drag_start_position = event.pos()
+                self.dragging_from_handle = True
+            else:
+                self.dragging_from_handle = False
         super(DraggablePhraseWidget, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         """マウス移動イベント - ドラッグ開始"""
         if not (event.buttons() & QtCore.Qt.LeftButton):
             return
-        if not self.drag_start_position:
+        if not self.drag_start_position or not self.dragging_from_handle:
             return
         if (event.pos() - self.drag_start_position).manhattanLength() < QtWidgets.QApplication.startDragDistance():
             return
@@ -224,6 +308,9 @@ class DraggablePhraseWidget(QtWidgets.QWidget):
 
         drag.exec_(QtCore.Qt.MoveAction)
 
+        # ドラッグ完了後リセット
+        self.dragging_from_handle = False
+
     def dragEnterEvent(self, event):
         """ドラッグエンターイベント"""
         if event.mimeData().hasText() and event.mimeData().text() == "phrase_widget":
@@ -237,11 +324,11 @@ class DraggablePhraseWidget(QtWidgets.QWidget):
             event.setDropAction(QtCore.Qt.MoveAction)
             event.accept()
 
-            # 親ウィジェット（NodeFilterWidget）に通知
+            # 親ウィジェット（MultiFilteringOutlinerWidget）に通知
             source_widget = event.source()
             if source_widget and source_widget != self:
                 parent_widget = self.parent()
-                while parent_widget and not isinstance(parent_widget, NodeFilterWidget):
+                while parent_widget and not isinstance(parent_widget, MultiFilteringOutlinerWidget):
                     parent_widget = parent_widget.parent()
                 if parent_widget:
                     parent_widget.swap_phrase_rows(source_widget, self)
@@ -431,14 +518,36 @@ class NodeListDialog(QtWidgets.QDialog):
         self.work_indices = work_indices if work_indices else (-1, -1, -1)
         self.phrase_index = phrase_index  # フレーズプリセットインデックス
         self.dialog_key = dialog_key  # ダイアログの一意なキー
-        self.parent_widget = parent_widget  # NodeFilterWidgetへの参照
+        self.parent_widget = parent_widget  # MultiFilteringOutlinerWidgetへの参照
 
         # ウィンドウフラグを設定（タイトルの前に設定する必要がある）
-        self.setWindowFlags(QtCore.Qt.Window)
+        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowMaximizeButtonHint | QtCore.Qt.WindowCloseButtonHint)
 
-        # ウィンドウタイトルを設定（setWindowFlagsの後に設定）
-        # list_nameには既に完全なタイトル（"作業名 - フレーズ名"）が入っている
-        window_title = list_name if list_name else "ノードリスト"
+        # ウィンドウタイトルを設定（プリセット名とIDを表示）
+        # このダイアログに関連付けられたフレーズプリセット情報を取得
+        preset_name = ""
+        preset_id = ""
+        if parent_widget and phrase_index >= 0:
+            project_idx, model_idx, work_idx = work_indices
+            if project_idx >= 0 and model_idx >= 0 and work_idx >= 0:
+                projects = parent_widget.projects
+                if project_idx < len(projects):
+                    models = projects[project_idx].get('models', [])
+                    if model_idx < len(models):
+                        works = models[model_idx].get('works', [])
+                        if work_idx < len(works):
+                            phrase_presets = works[work_idx].get('phrase_presets', [])
+                            if phrase_index < len(phrase_presets):
+                                phrase_preset = phrase_presets[phrase_index]
+                                preset_name = phrase_preset.get('name', '')
+                                preset_id = phrase_preset.get('unique_id', '')
+
+        if preset_name and preset_id:
+            window_title = f"{preset_name} (ID: {preset_id})"
+        elif preset_name:
+            window_title = preset_name
+        else:
+            window_title = "ノードリスト"
         self.setWindowTitle(window_title)
         self.setMinimumWidth(400)
         # モードレスダイアログに設定（他の操作を可能にする）
@@ -464,9 +573,9 @@ class NodeListDialog(QtWidgets.QDialog):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
-        # タイトル
+        # ノード数表示
         self.title_label = QtWidgets.QLabel(f"ノードリスト ({len(self.nodes)}個)")
-        self.title_label.setStyleSheet("font-weight: bold; font-size: 12pt;")
+        self.title_label.setStyleSheet("font-weight: bold; font-size: 10pt;")
         layout.addWidget(self.title_label)
 
         # ノードリスト
@@ -669,6 +778,9 @@ class NodeListDialog(QtWidgets.QDialog):
 
     def update_nodes(self):
         """ノードリストを再構築"""
+        # 現在のフォーカスウィジェットを保存
+        focused_widget = QtWidgets.QApplication.focusWidget()
+
         # 現在の選択状態を保存（フルパスで）
         selected_nodes = []
         for item in self.node_list.selectedItems():
@@ -699,10 +811,19 @@ class NodeListDialog(QtWidgets.QDialog):
         # シグナルのブロックを解除
         self.node_list.blockSignals(False)
 
+        # フォーカスを復元（ダイアログ外のウィジェットにのみ）
+        if focused_widget and not self.isAncestorOf(focused_widget):
+            focused_widget.setFocus()
+
     def auto_refresh(self):
         """自動更新（定期的に呼ばれる）"""
         # ダイアログが表示されている場合のみ更新
         if not self.isVisible():
+            return
+
+        # ダイアログにフォーカスがある場合は更新しない
+        focused_widget = QtWidgets.QApplication.focusWidget()
+        if focused_widget and self.isAncestorOf(focused_widget):
             return
 
         # 自分のプリセット設定で再フィルタリング
@@ -839,6 +960,312 @@ class NodeListDialog(QtWidgets.QDialog):
         super().closeEvent(event)
 
 
+class CommonNodeListDialog(QtWidgets.QDialog):
+    """共通ノードリスト表示用のダイアログ（作業プリセット間で共有）"""
+
+    def __init__(self, unique_id="", parent_widget=None, parent=None):
+        # Mayaのメインウィンドウを親として取得
+        if parent is None:
+            try:
+                from maya import OpenMayaUI as omui
+                from shiboken6 import wrapInstance
+                maya_main_window_ptr = omui.MQtUtil.mainWindow()
+                parent = wrapInstance(int(maya_main_window_ptr), QtWidgets.QWidget)
+            except:
+                pass
+
+        super(CommonNodeListDialog, self).__init__(parent)
+
+        self.unique_id = unique_id  # フレーズプリセットのユニークID
+        self.parent_widget = parent_widget  # MultiFilteringOutlinerWidgetへの参照
+        self.nodes = []
+
+        # ウィンドウフラグを設定
+        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowMaximizeButtonHint | QtCore.Qt.WindowCloseButtonHint)
+
+        # ウィンドウタイトルを設定（プリセット名とIDを表示）
+        preset_name = ""
+        if parent_widget:
+            phrase_preset = parent_widget.get_current_phrase_preset()
+            if phrase_preset:
+                preset_name = phrase_preset.get('name', '')
+
+        if preset_name and unique_id:
+            self.setWindowTitle(f"{preset_name} (ID: {unique_id})")
+        elif unique_id:
+            self.setWindowTitle(f"共通ダイアログ (ID: {unique_id})")
+        else:
+            self.setWindowTitle("共通ダイアログ")
+
+        self.setMinimumWidth(400)
+        self.setWindowModality(QtCore.Qt.NonModal)
+
+        self.create_ui()
+        self.restore_geometry()
+        self.on_refresh()
+
+        # 自動更新タイマーを設定
+        self.update_timer = QtCore.QTimer(self)
+        self.update_timer.timeout.connect(self.auto_refresh)
+        self.update_timer.start(1000)
+
+    def create_ui(self):
+        """UIを作成"""
+        layout = QtWidgets.QVBoxLayout(self)
+
+        # 共通ダイアログラベル
+        common_label = QtWidgets.QLabel("共通ダイアログ")
+        common_label.setStyleSheet("font-weight: bold; font-size: 12pt; color: rgb(102, 153, 179);")
+        common_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(common_label)
+
+        # ノード数表示
+        self.count_label = QtWidgets.QLabel("ノード数: 0")
+        layout.addWidget(self.count_label)
+
+        # ノードリストウィジェット
+        self.list_widget = QtWidgets.QListWidget()
+        self.list_widget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)
+        self.list_widget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.list_widget.customContextMenuRequested.connect(self.show_context_menu)
+        # リスト選択でMayaのノードを選択（update_list中はblockSignalsで無効化）
+        self.list_widget.itemSelectionChanged.connect(self.on_selection_changed)
+        layout.addWidget(self.list_widget)
+
+    def get_current_phrase_preset(self):
+        """現在の作業プリセットから、このunique_idに一致するフレーズプリセットを取得"""
+        if not self.parent_widget:
+            return None
+
+        work = self.parent_widget.get_current_work_preset()
+        if not work:
+            return None
+
+        phrase_presets = work.get('phrase_presets', [])
+        for preset in phrase_presets:
+            if preset.get('unique_id') == self.unique_id:
+                return preset
+
+        return None
+
+    def on_refresh(self):
+        """ノードリストを更新"""
+        phrase_preset = self.get_current_phrase_preset()
+        if not phrase_preset:
+            self.nodes = []
+            self.update_list()
+            self.setWindowTitle(f"共通ダイアログ [{self.unique_id[:8]}] - プリセット未検出")
+            return
+
+        # ウィンドウタイトルを更新
+        work = self.parent_widget.get_current_work_preset()
+        work_name = work.get('name', '不明') if work else '不明'
+        preset_name = phrase_preset.get('name', '不明')
+        self.setWindowTitle(f"共通ダイアログ - {work_name} - {preset_name}")
+
+        # フレーズ設定を収集
+        from ..tools import multi_filtering_outliner as nf
+
+        # 共通フィルターを取得
+        common_include_configs = []
+        common_exclude_configs = []
+        if phrase_preset.get('use_common_filter', True) and work:
+            for common_phrase in work.get('common_filters', []):
+                config = {
+                    'text': common_phrase['text'],
+                    'exact_token': common_phrase.get('exact_token', False)
+                }
+                if common_phrase.get('exclude', False):
+                    common_exclude_configs.append(config)
+                else:
+                    common_include_configs.append(config)
+
+        # フレーズプリセットのフィルターを取得
+        include_configs = []
+        exclude_configs = []
+        for phrase in phrase_preset.get('phrase_data', []):
+            if not phrase.get('enabled', True):
+                continue
+            config = {
+                'text': phrase['text'],
+                'exact_token': phrase.get('exact_token', False)
+            }
+            if phrase.get('exclude', False):
+                exclude_configs.append(config)
+            else:
+                include_configs.append(config)
+
+        # フィルタリング実行
+        match_mode = phrase_preset.get('match_mode', 'any')
+
+        if common_include_configs:
+            matched_nodes = nf.filter_nodes_by_phrase_configs(common_include_configs, 'all')
+        else:
+            matched_nodes = nf.get_all_nodes()
+
+        if common_exclude_configs:
+            common_excluded_nodes = nf.filter_nodes_by_phrase_configs(common_exclude_configs, 'any')
+            matched_nodes = [node for node in matched_nodes if node not in common_excluded_nodes]
+
+        if include_configs:
+            original_get_all = nf.get_all_nodes
+            nf.get_all_nodes = lambda: matched_nodes
+            matched_nodes = nf.filter_nodes_by_phrase_configs(include_configs, match_mode)
+            nf.get_all_nodes = original_get_all
+
+        if exclude_configs:
+            excluded_nodes = nf.filter_nodes_by_phrase_configs(exclude_configs, 'any')
+            matched_nodes = [node for node in matched_nodes if node not in excluded_nodes]
+
+        # DAGオブジェクトのみフィルタリング
+        dag_only = phrase_preset.get('dag_only', False)
+        if dag_only:
+            import maya.cmds as cmds
+            matched_nodes = [node for node in matched_nodes if cmds.objectType(node, isAType='dagNode')]
+
+        # フルパスでソート（短い名前でソート）
+        self.nodes = sorted(matched_nodes, key=lambda x: x.split('|')[-1].lower())
+        self.update_list()
+
+    def update_list(self):
+        """リストウィジェットを更新"""
+        # 現在のフォーカスウィジェットを保存
+        focused_widget = QtWidgets.QApplication.focusWidget()
+
+        # シグナルをブロックしてリストを更新
+        self.list_widget.blockSignals(True)
+        self.list_widget.clear()
+        self.count_label.setText(f"ノード数: {len(self.nodes)}")
+        for node_path in self.nodes:
+            short_name = node_path.split('|')[-1]
+            item = QtWidgets.QListWidgetItem(short_name)
+            item.setData(QtCore.Qt.UserRole, node_path)  # フルパスを保存
+            self.list_widget.addItem(item)
+        self.list_widget.blockSignals(False)
+
+        # フォーカスを復元（ダイアログ外のウィジェットにのみ）
+        if focused_widget and not self.isAncestorOf(focused_widget):
+            focused_widget.setFocus()
+
+    def auto_refresh(self):
+        """自動更新（タイマーから呼ばれる）"""
+        # ダイアログが表示されている場合のみ更新
+        if not self.isVisible():
+            return
+
+        # ダイアログにフォーカスがある場合は更新しない
+        focused_widget = QtWidgets.QApplication.focusWidget()
+        if focused_widget and self.isAncestorOf(focused_widget):
+            return
+
+        self.on_refresh()
+
+    def on_item_double_clicked(self, item):
+        """アイテムダブルクリック時にクリップボードにコピー"""
+        QtWidgets.QApplication.clipboard().setText(item.text())
+
+    def show_context_menu(self, pos):
+        """右クリックメニュー表示"""
+        item = self.list_widget.itemAt(pos)
+        if not item:
+            return
+
+        menu = QtWidgets.QMenu(self)
+        copy_action = menu.addAction("ノード名をコピー")
+        select_action = menu.addAction("Mayaで選択")
+
+        action = menu.exec_(self.list_widget.mapToGlobal(pos))
+
+        if action == copy_action:
+            QtWidgets.QApplication.clipboard().setText(item.text())
+        elif action == select_action:
+            import maya.cmds as cmds
+            node_path = item.data(QtCore.Qt.UserRole)
+            if node_path and cmds.objExists(node_path):
+                cmds.select(node_path, replace=True)
+
+    def on_selection_changed(self):
+        """リスト選択変更時にMayaで選択"""
+        import maya.cmds as cmds
+
+        # 現在のフォーカスウィジェットを保存
+        focused_widget = QtWidgets.QApplication.focusWidget()
+
+        selected_items = self.list_widget.selectedItems()
+        if not selected_items:
+            return
+
+        # フルパスを取得
+        node_paths = []
+        for item in selected_items:
+            node_path = item.data(QtCore.Qt.UserRole)
+            if node_path:
+                node_paths.append(node_path)
+
+        # 存在するノードのみを選択
+        existing = [n for n in node_paths if cmds.objExists(n)]
+        if existing:
+            try:
+                cmds.select(existing, replace=True)
+            except:
+                pass
+
+        # フォーカスを復元（このダイアログ外のウィジェットにのみ）
+        if focused_widget and not self.isAncestorOf(focused_widget):
+            QtCore.QTimer.singleShot(0, lambda: focused_widget.setFocus())
+
+    def restore_geometry(self):
+        """ジオメトリを復元"""
+        phrase_preset = self.get_current_phrase_preset()
+        if phrase_preset and 'common_dialog_geometry' in phrase_preset:
+            geometry = phrase_preset['common_dialog_geometry']
+            self.setGeometry(geometry['x'], geometry['y'], geometry['width'], geometry['height'])
+
+    def closeEvent(self, event):
+        """ダイアログが閉じられる時"""
+        self.update_timer.stop()
+
+        # unique_idに一致するフレーズプリセットを全プロジェクト・モデル・作業から検索
+        phrase_preset = None
+        if self.parent_widget and self.unique_id:
+            for project in self.parent_widget.projects:
+                for model in project.get('models', []):
+                    for work in model.get('works', []):
+                        for preset in work.get('phrase_presets', []):
+                            if preset.get('unique_id') == self.unique_id:
+                                phrase_preset = preset
+                                break
+                        if phrase_preset:
+                            break
+                    if phrase_preset:
+                        break
+                if phrase_preset:
+                    break
+
+        if phrase_preset:
+            geometry = self.geometry()
+            phrase_preset['common_dialog_geometry'] = {
+                'x': geometry.x(),
+                'y': geometry.y(),
+                'width': geometry.width(),
+                'height': geometry.height()
+            }
+
+            # メインウィンドウから閉じられた場合はcommon_dialog_openフラグを変更しない
+            if not hasattr(self, '_closing_from_main') or not self._closing_from_main:
+                # ユーザーが直接閉じた場合のみcommon_dialog_openをFalseに設定
+                phrase_preset['common_dialog_open'] = False
+
+            if self.parent_widget:
+                self.parent_widget.save_settings()
+
+        if self.parent_widget and self.unique_id in self.parent_widget.common_dialogs:
+            del self.parent_widget.common_dialogs[self.unique_id]
+
+        super().closeEvent(event)
+
+
 class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
     """Multi Filtering Outliner ツールウィジェット"""
 
@@ -855,8 +1282,8 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
 
         super(MultiFilteringOutlinerWidget, self).__init__(parent)
 
-        # ウィンドウフラグを設定
-        self.setWindowFlags(QtCore.Qt.Window)
+        # ウィンドウフラグを設定（Maya統合のため）
+        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowMinMaxButtonsHint | QtCore.Qt.WindowCloseButtonHint)
         self.setWindowTitle("Multi Filtering Outliner")
 
         # 初期化フラグ（初期化中は自動保存を無効化）
@@ -879,12 +1306,12 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
 
         self.current_nodes = []  # 現在表示中のノードリスト
         self.node_dialogs = {}  # プリセットごとのノードリストダイアログ {list_name: dialog}
+        self.common_dialogs = {}  # 共通ダイアログ {unique_id: dialog}
         self.last_import_path = ""  # 最後に使用した読み込みパス
         self.last_export_path = ""  # 最後に使用した書き出しパス
-        self.main_window_geometry = {}  # メインウィンドウのジオメトリ
         self.create_ui()
         self.load_settings()  # 設定を読み込み
-        self.restore_main_window_geometry()  # ウィンドウ位置を復元
+        self.restore_model_geometry()  # ウィンドウ位置を復元（モデルプリセットごと）
 
         # 初期化完了
         self._is_loading = False
@@ -1236,6 +1663,26 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
         match_mode_layout.addStretch()
         phrase_layout.addLayout(match_mode_layout)
 
+        # プリセットID設定エリア
+        id_layout = QtWidgets.QHBoxLayout()
+        id_label = QtWidgets.QLabel("共通ダイアログID:")
+        id_label.setMinimumWidth(120)
+        id_layout.addWidget(id_label)
+
+        self.preset_id_input = QtWidgets.QLineEdit()
+        self.preset_id_input.setPlaceholderText("数字を入力 (例: 1, 2, 3...)")
+        self.preset_id_input.setMaximumWidth(150)
+        # 数字のみ入力可能に設定
+        validator = QtGui.QIntValidator(1, 9999, self.preset_id_input)
+        self.preset_id_input.setValidator(validator)
+        self.preset_id_input.textChanged.connect(self.on_preset_id_changed)
+        self.preset_id_input.editingFinished.connect(self.on_preset_id_editing_finished)
+        id_layout.addWidget(self.preset_id_input)
+
+        id_layout.addStretch()
+
+        phrase_layout.addLayout(id_layout)
+
         # フレーズ入力コンテナ（スクロール可能、拡縮対応）
         phrase_scroll = QtWidgets.QScrollArea()
         phrase_scroll.setWidgetResizable(True)
@@ -1303,26 +1750,20 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
         list_group.setLayout(list_layout)
         phrase_preset_content_layout.addWidget(list_group, 3)  # ストレッチファクター3（最優先）
 
-        # 更新・選択・ダイアログボタン
+        # ダイアログボタン
         action_buttons_layout = QtWidgets.QHBoxLayout()
-
-        refresh_btn = QtWidgets.QPushButton("更新")
-        refresh_btn.setMinimumHeight(30)
-        refresh_btn.setStyleSheet("background-color: rgb(102, 153, 179);")
-        refresh_btn.clicked.connect(self.on_refresh)
-        action_buttons_layout.addWidget(refresh_btn)
-
-        select_btn = QtWidgets.QPushButton("選択")
-        select_btn.setMinimumHeight(30)
-        select_btn.setStyleSheet("background-color: rgb(102, 153, 204);")
-        select_btn.clicked.connect(self.on_select_nodes)
-        action_buttons_layout.addWidget(select_btn)
 
         dialog_btn = QtWidgets.QPushButton("ダイアログで開く")
         dialog_btn.setMinimumHeight(30)
         dialog_btn.setStyleSheet("background-color: rgb(102, 179, 153);")
         dialog_btn.clicked.connect(self.on_open_dialog)
         action_buttons_layout.addWidget(dialog_btn)
+
+        common_dialog_btn = QtWidgets.QPushButton("共通ダイアログで開く")
+        common_dialog_btn.setMinimumHeight(30)
+        common_dialog_btn.setStyleSheet("background-color: rgb(153, 102, 179);")
+        common_dialog_btn.clicked.connect(self.on_open_common_dialog)
+        action_buttons_layout.addWidget(common_dialog_btn)
 
         phrase_preset_content_layout.addLayout(action_buttons_layout)
 
@@ -1347,8 +1788,17 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
                 pass
         self.node_dialogs.clear()
 
-        # メインウィンドウの位置とサイズを保存
-        self.save_main_window_geometry()
+        # すべての共通ダイアログを閉じる
+        for dialog in list(self.common_dialogs.values()):
+            try:
+                dialog.close()
+            except:
+                pass
+        self.common_dialogs.clear()
+
+        # 現在のモデルのジオメトリを保存
+        if self.current_model_index >= 0:
+            self.save_model_geometry()
 
         # 設定を保存
         self.save_settings()
@@ -1535,6 +1985,12 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
             self.clear_phrase_preset_buttons()
             return
 
+        # ID入力フィールドのフォーカスを外して編集内容を確定
+        if self.preset_id_input.hasFocus():
+            self.preset_id_input.clearFocus()
+            # イベントループを処理してeditingFinishedシグナルを確実に発火
+            QtCore.QCoreApplication.processEvents()
+
         # 現在の状態を保存
         if self.current_work_index >= 0:
             self.save_common_filters_state()
@@ -1594,6 +2050,16 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
             self.clear_phrase_preset_buttons()
             return
 
+        # ID入力フィールドのフォーカスを外して編集内容を確定
+        if self.preset_id_input.hasFocus():
+            self.preset_id_input.clearFocus()
+            # イベントループを処理してeditingFinishedシグナルを確実に発火
+            QtCore.QCoreApplication.processEvents()
+
+        # 現在のモデルのジオメトリを保存（モデル切り替え前）
+        if self.current_model_index >= 0:
+            self.save_model_geometry()
+
         # 現在の状態を保存
         if self.current_work_index >= 0:
             self.save_common_filters_state()
@@ -1601,8 +2067,15 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
             self.save_current_phrase_preset_state()
         self.save_settings()
 
+        # 現在のモデルのダイアログをすべて閉じる
+        self.close_all_dialogs()
+
         self.current_model_index = index
         self.update_work_buttons()
+
+        # 新しいモデルのジオメトリとダイアログを復元
+        self.restore_model_geometry()
+        self.restore_model_dialogs()
 
     def update_model_combo(self):
         """モデルのコンボボックスを更新"""
@@ -1706,6 +2179,12 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
         if not model or index < 0 or index >= len(model.get('works', [])):
             return
 
+        # ID入力フィールドのフォーカスを外して編集内容を確定
+        if self.preset_id_input.hasFocus():
+            self.preset_id_input.clearFocus()
+            # イベントループを処理してeditingFinishedシグナルを確実に発火
+            QtCore.QCoreApplication.processEvents()
+
         # 現在の状態を保存
         if self.current_work_index >= 0:
             self.save_common_filters_state()
@@ -1722,6 +2201,15 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
 
         # フレーズプリセットボタンを更新
         self.update_phrase_preset_buttons()
+
+        # 共通ダイアログを更新
+        self.refresh_common_dialogs()
+
+    def refresh_common_dialogs(self):
+        """開いている共通ダイアログをすべて更新"""
+        for unique_id, dialog in list(self.common_dialogs.items()):
+            if dialog.isVisible():
+                dialog.on_refresh()
 
     def save_current_work_state(self):
         """現在の作業プリセットの状態を保存"""
@@ -2023,6 +2511,18 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
         self.load_common_filters_to_ui()
 
         phrase_presets = work.get('phrase_presets', [])
+        # 既存のプリセットにユニークIDがない場合は追加、UUID形式の場合は数字形式に変換
+        for preset in phrase_presets:
+            if 'unique_id' not in preset:
+                preset['unique_id'] = self.get_next_available_id(work)
+            else:
+                # UUID形式（数字以外を含む）の場合は数字形式に変換
+                unique_id = preset.get('unique_id', '')
+                if unique_id and not unique_id.isdigit():
+                    preset['unique_id'] = self.get_next_available_id(work)
+            if 'use_common_dialog' not in preset:
+                preset['use_common_dialog'] = False
+
         for i, preset in enumerate(phrase_presets):
             self.create_phrase_preset_button(i)
 
@@ -2095,17 +2595,30 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
 
     def switch_to_phrase_preset(self, index):
         """指定したフレーズプリセットに切り替え"""
+        print(f"\n[DEBUG] switch_to_phrase_preset: index={index}")
+
         work = self.get_current_work_preset()
         if not work:
             return
 
         phrase_presets = work.get('phrase_presets', [])
+
         if index < 0 or index >= len(phrase_presets):
             return
 
-        # 現在の状態を保存
-        if self.current_phrase_preset_index >= 0:
+
+        # ID入力フィールドのフォーカスを外して編集内容を確定
+        if self.preset_id_input.hasFocus():
+            self.preset_id_input.clearFocus()
+            # イベントループを処理してeditingFinishedシグナルを確実に発火
+            QtCore.QCoreApplication.processEvents()
+
+        # 現在の状態を保存（切り替え前のプリセットが有効な場合）
+        # インデックスが異なる場合のみ保存（同じプリセットをクリックした場合はスキップ）
+        if self.current_phrase_preset_index >= 0 and self.current_phrase_preset_index != index:
             self.save_current_phrase_preset_state()
+        elif self.current_phrase_preset_index == index:
+            pass
 
         # インデックスを更新
         self.current_phrase_preset_index = index
@@ -2119,9 +2632,14 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
 
     def save_current_phrase_preset_state(self):
         """現在のフレーズプリセットの状態を保存"""
+        # 読み込み中は保存しない
+        if getattr(self, '_is_loading', False):
+            return
+
         phrase_preset = self.get_current_phrase_preset()
         if not phrase_preset:
             return
+
 
         # フレーズを収集
         phrase_data = []
@@ -2141,9 +2659,12 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
         phrase_preset['match_mode'] = self.match_mode_combo.currentData()
         phrase_preset['dag_only'] = self.dag_only_check.isChecked()
         phrase_preset['use_common_filter'] = self.use_common_filter_check.isChecked()
+        phrase_preset['unique_id'] = self.preset_id_input.text().strip()
+
 
     def load_phrase_preset_to_ui(self, index):
         """フレーズプリセットのデータをUIに読み込み"""
+
         work = self.get_current_work_preset()
         if not work:
             return
@@ -2154,38 +2675,68 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
 
         preset_data = phrase_presets[index]
 
-        # フレーズ入力をクリア
-        while self.phrase_container_layout.count():
-            item = self.phrase_container_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+        # 読み込み中フラグをセット（シグナルによる自動保存を防ぐ）
+        self._is_loading = True
 
-        # フレーズを復元
-        phrase_data = preset_data.get('phrase_data', [{'text': '', 'enabled': True, 'exclude': False, 'exact_token': False}])
-        for data in phrase_data:
-            if isinstance(data, dict):
-                self.add_phrase_row(
-                    data.get('text', ''),
-                    data.get('enabled', True),
-                    data.get('exclude', False),
-                    data.get('exact_token', False)
-                )
+        try:
+            # フレーズ入力をクリア
+            while self.phrase_container_layout.count():
+                item = self.phrase_container_layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
 
-        # マッチモードを復元
-        match_mode = preset_data.get('match_mode', 'any')
-        index_to_set = 0 if match_mode == 'any' else 1
-        self.match_mode_combo.setCurrentIndex(index_to_set)
+            # フレーズを復元
+            phrase_data = preset_data.get('phrase_data', [{'text': '', 'enabled': True, 'exclude': False, 'exact_token': False}])
+            for data in phrase_data:
+                if isinstance(data, dict):
+                    self.add_phrase_row(
+                        data.get('text', ''),
+                        data.get('enabled', True),
+                        data.get('exclude', False),
+                        data.get('exact_token', False)
+                    )
 
-        # DAGオブジェクトのみチェックを復元
-        dag_only = preset_data.get('dag_only', False)
-        self.dag_only_check.setChecked(dag_only)
+            # マッチモードを復元
+            match_mode = preset_data.get('match_mode', 'any')
+            index_to_set = 0 if match_mode == 'any' else 1
+            self.match_mode_combo.setCurrentIndex(index_to_set)
 
-        # 共通フィルター使用チェックを復元
-        use_common_filter = preset_data.get('use_common_filter', True)
-        self.use_common_filter_check.setChecked(use_common_filter)
+            # DAGオブジェクトのみチェックを復元
+            dag_only = preset_data.get('dag_only', False)
+            self.dag_only_check.setChecked(dag_only)
 
-        # リストを更新
-        self.on_refresh()
+            # 共通フィルター使用チェックを復元
+            use_common_filter = preset_data.get('use_common_filter', True)
+            self.use_common_filter_check.setChecked(use_common_filter)
+
+            # プリセットIDを復元
+            unique_id = preset_data.get('unique_id', '')
+
+            if not unique_id:
+                unique_id = self.get_next_available_id()
+                preset_data['unique_id'] = unique_id
+            else:
+                # UUID形式（数字以外を含む）の場合は数字形式に変換
+                if not unique_id.isdigit():
+                    old_id = unique_id
+                    unique_id = self.get_next_available_id()
+                    preset_data['unique_id'] = unique_id
+
+
+            # ID入力フィールドのシグナルを一時的にブロック
+            self.preset_id_input.blockSignals(True)
+            self.preset_id_input.setText(unique_id)
+            self.preset_id_input.blockSignals(False)
+
+            # リストを更新
+            self.on_refresh()
+
+        finally:
+            # 読み込み中フラグを解除
+            self._is_loading = False
+
+        # 読み込み完了後、重複チェックを実行（視覚的フィードバック）
+        self.check_id_duplicate()
 
     def on_phrase_preset_name_changed(self, index, new_name):
         """フレーズプリセット名が変更された時"""
@@ -2212,10 +2763,12 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
         # 新しいフレーズプリセットを作成
         new_preset = {
             'name': preset_name,
+            'unique_id': self.get_next_available_id(work),  # 次に利用可能な番号IDを追加
             'phrase_data': [{'text': '', 'enabled': True, 'exclude': False, 'exact_token': False}],
             'match_mode': 'any',
             'dag_only': False,
-            'use_common_filter': True
+            'use_common_filter': True,
+            'use_common_dialog': False  # 共通ダイアログを使用するかのフラグ
         }
 
         if 'phrase_presets' not in work:
@@ -2347,17 +2900,14 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
         """共通フィルターの状態を保存"""
         # 初期化中は保存しない
         if getattr(self, '_is_loading', False):
-            print("[save_common_filters_state] 初期化中のため保存をスキップ")
             return
 
         # UIが破棄されている場合は保存しない
         if not hasattr(self, 'common_filter_container_layout') or self.common_filter_container_layout is None:
-            print("[save_common_filters_state] UI が破棄されているため保存をスキップ")
             return
 
         work = self.get_current_work_preset()
         if not work:
-            print("[save_common_filters_state] work が None - 保存できません")
             return
 
         # 共通フィルターを収集
@@ -2375,9 +2925,6 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
                     })
 
         work['common_filters'] = common_filters if common_filters else [{'text': '', 'enabled': True, 'exclude': False, 'exact_token': False}]
-        print(f"[save_common_filters_state] 保存しました: {len(common_filters)}個のフィルター")
-        if common_filters:
-            print(f"[save_common_filters_state] 内容: {common_filters}")
 
     def add_common_filter_row(self, text='', enabled=True, exclude=False, exact_token=False):
         """共通フィルター入力行を追加"""
@@ -2483,17 +3030,17 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
                             else:
                                 include_configs.append(config)
 
-        # 包含フレーズがない場合はリストをクリア
-        if not include_configs:
-            self.node_list.clear()
-            self.current_nodes = []
-            return
-
         # マッチモードを取得
         match_mode = self.match_mode_combo.currentData()
 
         # 共通フィルター使用チェックボックスの状態を確認
         use_common_filter = self.use_common_filter_check.isChecked()
+
+        # 包含フレーズと共通フィルターの両方がない場合はリストをクリア
+        if not include_configs and not (use_common_filter and common_include_configs):
+            self.node_list.clear()
+            self.current_nodes = []
+            return
 
         # 1. まず共通フィルターを適用（共通フィルター使用が有効な場合のみ）
         if use_common_filter and common_include_configs:
@@ -2664,6 +3211,147 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
 
             dialog.show()
 
+    def on_open_common_dialog(self):
+        """共通ノードリストダイアログで開く（作業プリセット間で共有）"""
+        # 現在のフレーズプリセットの状態を保存
+        if self.current_phrase_preset_index >= 0:
+            self.save_current_phrase_preset_state()
+
+        phrase_preset = self.get_current_phrase_preset()
+        if not phrase_preset:
+            QtWidgets.QMessageBox.warning(self, "警告", "フレーズプリセットが選択されていません")
+            return
+
+        unique_id = phrase_preset.get('unique_id')
+        if not unique_id:
+            QtWidgets.QMessageBox.warning(self, "警告", "このフレーズプリセットにはユニークIDが設定されていません")
+            return
+
+        # 既存の共通ダイアログがあれば、それを前面に表示
+        if unique_id in self.common_dialogs and self.common_dialogs[unique_id].isVisible():
+            self.common_dialogs[unique_id].on_refresh()
+            self.common_dialogs[unique_id].raise_()
+            self.common_dialogs[unique_id].activateWindow()
+        else:
+            # 新しい共通ダイアログを作成
+            dialog = CommonNodeListDialog(
+                unique_id=unique_id,
+                parent_widget=self,
+                parent=self
+            )
+            self.common_dialogs[unique_id] = dialog
+            phrase_preset['use_common_dialog'] = True
+            phrase_preset['common_dialog_open'] = True
+            self.save_settings()
+            dialog.show()
+
+    def check_id_duplicate(self):
+        """IDの重複をチェックして視覚的フィードバックを提供"""
+        current_id = self.preset_id_input.text().strip()
+        if not current_id:
+            self.preset_id_input.setStyleSheet("")
+            return
+
+        work = self.get_current_work_preset()
+        if not work:
+            self.preset_id_input.setStyleSheet("")
+            return
+
+        # 重複チェック
+        duplicate_found = False
+        for i, preset in enumerate(work.get('phrase_presets', [])):
+            if i != self.current_phrase_preset_index and preset.get('unique_id') == current_id:
+                duplicate_found = True
+                break
+
+        # 視覚的フィードバック
+        if duplicate_found:
+            self.preset_id_input.setStyleSheet("QLineEdit { background-color: rgb(100, 70, 70); }")
+        else:
+            self.preset_id_input.setStyleSheet("")
+
+    def on_preset_id_changed(self):
+        """プリセットID変更時の処理"""
+        if self._is_loading:
+            return
+
+        new_id = self.preset_id_input.text().strip()
+        phrase_preset = self.get_current_phrase_preset()
+        if not phrase_preset:
+            return
+
+        # IDが空の場合は新規生成
+        if not new_id:
+            new_id = self.get_next_available_id()
+            self.preset_id_input.setText(new_id)
+            return
+
+        # 数字以外が含まれている場合（バリデーターを通過していないはずだが念のため）
+        if not new_id.isdigit():
+            print(f"警告: 数字以外のID '{new_id}' が検出されました。数字形式に変換します。")
+            new_id = self.get_next_available_id()
+            self.preset_id_input.setText(new_id)
+            return
+
+        # IDの重複チェック
+        work = self.get_current_work_preset()
+        if work:
+            duplicate_found = False
+            for i, preset in enumerate(work.get('phrase_presets', [])):
+                if i != self.current_phrase_preset_index and preset.get('unique_id') == new_id:
+                    duplicate_found = True
+                    break
+
+            # 重複警告（視覚的フィードバック）
+            if duplicate_found:
+                self.preset_id_input.setStyleSheet("QLineEdit { background-color: rgb(100, 70, 70); }")
+            else:
+                self.preset_id_input.setStyleSheet("")
+
+        # IDを更新
+        old_id = phrase_preset.get('unique_id')
+        phrase_preset['unique_id'] = new_id
+
+        # 共通ダイアログが開いている場合は更新
+        if old_id and old_id in self.common_dialogs:
+            dialog = self.common_dialogs[old_id]
+            if new_id != old_id:
+                # IDが変わった場合、ダイアログを移動
+                del self.common_dialogs[old_id]
+                dialog.unique_id = new_id
+                self.common_dialogs[new_id] = dialog
+                dialog.on_refresh()
+
+        self.save_settings()
+
+    def on_preset_id_editing_finished(self):
+        """ID入力フィールドの編集が完了した時（フォーカスが外れた時やEnterキーを押した時）"""
+        # on_preset_id_changed で既に処理されているので、追加の処理は不要
+        # このシグナルは主にフォーカスが外れたときに確実に処理を完了させるため
+        pass
+
+    def get_next_available_id(self, work=None):
+        """次に利用可能な番号IDを取得"""
+        if work is None:
+            work = self.get_current_work_preset()
+
+        if not work:
+            return "1"
+
+        used_ids = set()
+        for preset in work.get('phrase_presets', []):
+            preset_id = preset.get('unique_id', '')
+            # 数字に変換できる場合のみ追加
+            if preset_id and preset_id.isdigit():
+                used_ids.add(int(preset_id))
+
+        # 次に利用可能な番号を見つける
+        next_id = 1
+        while next_id in used_ids:
+            next_id += 1
+
+        return str(next_id)
+
     def on_node_double_clicked(self, item):
         """ノードがダブルクリックされた時（ノード名をクリップボードにコピー）"""
         import maya.cmds as cmds
@@ -2710,9 +3398,14 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
             print(f"選択しました: {item.text()}")
 
     def export_preset(self):
-        """すべてのプリセットをファイルに書き出し"""
-        if not self.projects:
-            print("書き出すプリセットがありません")
+        """現在選択中の作業プリセットをファイルに書き出し"""
+        work = self.get_current_work_preset()
+        if not work:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "警告",
+                "作業プリセットが選択されていません"
+            )
             return
 
         # 現在の状態を保存
@@ -2721,11 +3414,15 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
         # 初期ディレクトリを決定
         initial_dir = self.last_export_path if self.last_export_path else os.path.expanduser("~")
 
+        # デフォルトのファイル名を作業プリセット名に設定
+        default_filename = f"{work.get('name', 'preset')}.json"
+        initial_path = os.path.join(initial_dir, default_filename)
+
         # ファイルダイアログでファイルパスを取得
         file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
-            "プリセットを書き出し",
-            initial_dir,
+            "作業プリセットを書き出し",
+            initial_path,
             "JSON Files (*.json);;All Files (*)"
         )
 
@@ -2733,10 +3430,10 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
             return
 
         try:
-            # すべてのプリセットを保存（階層構造）
+            # 現在の作業プリセットのみを保存
             export_data = {
                 'version': 2,
-                'projects': self.projects
+                'work_preset': work
             }
 
             with open(file_path, 'w', encoding='utf-8') as f:
@@ -2745,7 +3442,12 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
             # 最後に使用したパスを保存（ディレクトリ部分のみ）
             self.last_export_path = os.path.dirname(file_path)
 
-            print(f"{len(self.projects)}個のプロジェクトを書き出しました: {file_path}")
+            print(f"作業プリセット '{work.get('name')}' を書き出しました: {file_path}")
+            QtWidgets.QMessageBox.information(
+                self,
+                "完了",
+                f"作業プリセット '{work.get('name')}' を書き出しました"
+            )
 
         except Exception as e:
             print(f"プリセットの書き出しに失敗: {e}")
@@ -2756,34 +3458,39 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
             )
 
     def import_preset(self):
-        """ファイルからプリセットを読み込み"""
+        """ファイルから作業プリセットを読み込み"""
+        model = self.get_current_model()
+        if not model:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "警告",
+                "先にプロジェクトとモデルを選択してください"
+            )
+            return
+
         # 初期ディレクトリを決定
         initial_dir = self.last_import_path if self.last_import_path else os.path.expanduser("~")
 
-        # ファイルダイアログでファイルパスを取得
-        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+        # 複数ファイル選択可能なダイアログ
+        file_paths, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
-            "プリセットを読み込み",
+            "作業プリセットを読み込み（複数選択可）",
             initial_dir,
             "JSON Files (*.json);;All Files (*)"
         )
 
-        if not file_path:
+        if not file_paths:
             return
 
         try:
-            # JSONファイルを読み込み
-            with open(file_path, 'r', encoding='utf-8') as f:
-                import_data = json.load(f)
-
-            version = import_data.get('version', 1)
-
-            if version == 2:
-                # 新形式（階層構造）のインポート
-                self.import_hierarchical_preset(import_data, file_path)
+            # 複数ファイルの場合は一括処理モードを確認
+            if len(file_paths) > 1:
+                self.import_multiple_presets(file_paths, model)
             else:
-                # 旧形式（フラットリスト）のインポート
-                self.import_flat_preset(import_data, file_path)
+                self.import_single_preset(file_paths[0], model)
+
+            self.last_import_path = os.path.dirname(file_paths[0])
+            self.save_settings()
 
         except json.JSONDecodeError as e:
             print(f"プリセットの読み込みに失敗（JSON解析エラー）: {e}")
@@ -2801,6 +3508,157 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
                 "エラー",
                 f"プリセットの読み込みに失敗しました:\n{e}"
             )
+
+    def import_single_preset(self, file_path, model):
+        """単一ファイルのインポート（現在のプリセットを更新/新規追加を選択）"""
+        import copy
+
+        with open(file_path, 'r', encoding='utf-8') as f:
+            import_data = json.load(f)
+
+        # 作業プリセットデータを取得
+        work_preset = import_data.get('work_preset')
+        if not work_preset:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "エラー",
+                "作業プリセットデータが見つかりません"
+            )
+            return
+
+        # 現在の作業プリセットがあるか確認
+        current_work = self.get_current_work_preset()
+
+        # ダイアログで選択
+        dialog = QtWidgets.QMessageBox(self)
+        dialog.setWindowTitle("インポート方法を選択")
+        dialog.setText(f"作業プリセット '{work_preset.get('name')}' をインポートします")
+        dialog.setInformativeText("インポート方法を選択してください")
+
+        update_btn = None
+        if current_work:
+            update_btn = dialog.addButton(f"現在のプリセット '{current_work.get('name')}' を更新", QtWidgets.QMessageBox.AcceptRole)
+        new_btn = dialog.addButton("新規プリセットとして追加", QtWidgets.QMessageBox.AcceptRole)
+        cancel_btn = dialog.addButton("キャンセル", QtWidgets.QMessageBox.RejectRole)
+
+        dialog.exec_()
+
+        clicked = dialog.clickedButton()
+
+        if clicked == cancel_btn or clicked is None:
+            return
+
+        if clicked == update_btn and current_work:
+            # 現在のプリセットを更新
+            current_work.update(copy.deepcopy(work_preset))
+            # 名前は保持
+            if 'name' in work_preset:
+                current_work['name'] = work_preset['name']
+            self.load_work_to_ui(self.current_work_index)
+            QtWidgets.QMessageBox.information(
+                self,
+                "完了",
+                f"作業プリセット '{current_work.get('name')}' を更新しました"
+            )
+        else:
+            # 新規プリセットとして追加
+            new_work = copy.deepcopy(work_preset)
+            # 同名チェック
+            existing_names = [w.get('name', '') for w in model.get('works', [])]
+            base_name = new_work.get('name', '新規プリセット')
+            counter = 1
+            new_name = base_name
+            while new_name in existing_names:
+                new_name = f"{base_name}_{counter}"
+                counter += 1
+            new_work['name'] = new_name
+
+            model.setdefault('works', []).append(new_work)
+            self.update_work_buttons()
+            # 新しいプリセットに切り替え
+            new_index = len(model['works']) - 1
+            self.switch_to_work(new_index)
+            QtWidgets.QMessageBox.information(
+                self,
+                "完了",
+                f"作業プリセット '{new_name}' を追加しました"
+            )
+
+    def import_multiple_presets(self, file_paths, model):
+        """複数ファイルのインポート（同名置き換え/すべて新規を選択）"""
+        import copy
+
+        # インポート方法を選択
+        dialog = QtWidgets.QMessageBox(self)
+        dialog.setWindowTitle("複数ファイルのインポート")
+        dialog.setText(f"{len(file_paths)}個のファイルをインポートします")
+        dialog.setInformativeText("インポート方法を選択してください")
+
+        replace_btn = dialog.addButton("同名の作業プリセットを置き換え", QtWidgets.QMessageBox.AcceptRole)
+        new_all_btn = dialog.addButton("すべて新規プリセットとして追加", QtWidgets.QMessageBox.AcceptRole)
+        cancel_btn = dialog.addButton("キャンセル", QtWidgets.QMessageBox.RejectRole)
+
+        dialog.exec_()
+
+        clicked = dialog.clickedButton()
+
+        if clicked == cancel_btn or clicked is None:
+            return
+
+        replace_mode = (clicked == replace_btn)
+        imported_count = 0
+        replaced_count = 0
+
+        for file_path in file_paths:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    import_data = json.load(f)
+
+                work_preset = import_data.get('work_preset')
+                if not work_preset:
+                    continue
+
+                preset_name = work_preset.get('name', 'プリセット')
+
+                if replace_mode:
+                    # 同名のプリセットを探す
+                    found = False
+                    for i, work in enumerate(model.get('works', [])):
+                        if work.get('name') == preset_name:
+                            # 置き換え
+                            model['works'][i] = copy.deepcopy(work_preset)
+                            found = True
+                            replaced_count += 1
+                            break
+
+                    if not found:
+                        # 同名がなければ新規追加
+                        model.setdefault('works', []).append(copy.deepcopy(work_preset))
+                        imported_count += 1
+                else:
+                    # すべて新規追加（同名の場合は番号付与）
+                    existing_names = [w.get('name', '') for w in model.get('works', [])]
+                    new_name = preset_name
+                    counter = 1
+                    while new_name in existing_names:
+                        new_name = f"{preset_name}_{counter}"
+                        counter += 1
+                    work_preset['name'] = new_name
+                    model.setdefault('works', []).append(copy.deepcopy(work_preset))
+                    imported_count += 1
+
+            except Exception as e:
+                print(f"ファイル {file_path} の読み込みに失敗: {e}")
+
+        self.update_work_buttons()
+
+        # 結果を表示
+        if replace_mode:
+            message = f"{replaced_count}個のプリセットを置き換え、{imported_count}個のプリセットを新規追加しました"
+        else:
+            message = f"{imported_count}個のプリセットを新規追加しました"
+
+        QtWidgets.QMessageBox.information(self, "完了", message)
 
     def import_hierarchical_preset(self, import_data, file_path):
         """階層構造プリセットをインポート"""
@@ -2998,6 +3856,26 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
     def save_settings(self):
         """設定をファイルに保存"""
         try:
+            # 読み込み中は状態を保存しない
+            if getattr(self, '_is_loading', False):
+                # プロジェクト構造のみを保存
+                os.makedirs(SETTINGS_DIR, exist_ok=True)
+                settings = {
+                    'version': 2,
+                    'projects': self.projects,
+                    'current_project_index': self.current_project_index,
+                    'current_model_index': self.current_model_index,
+                    'current_work_index': self.current_work_index,
+                    'last_import_path': self.last_import_path,
+                    'last_export_path': self.last_export_path,
+                    'lists': self.outliner_lists,
+                    'current_index': self.current_list_index
+                }
+                with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(settings, f, indent=2, ensure_ascii=False)
+                print(f"Multi Filtering Outliner: 設定を保存しました（読み込み中）: {SETTINGS_FILE}")
+                return
+
             # 現在の状態を保存
             if self.current_work_index >= 0:
                 self.save_common_filters_state()
@@ -3016,16 +3894,10 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
                 'current_work_index': self.current_work_index,
                 'last_import_path': self.last_import_path,
                 'last_export_path': self.last_export_path,
-                'main_window_geometry': self.main_window_geometry,
                 # 旧形式との互換性のため保持（マイグレーション用）
                 'lists': self.outliner_lists,
                 'current_index': self.current_list_index
             }
-
-            # デバッグ: 現在のワークプリセットの共通フィルターを確認
-            work = self.get_current_work_preset()
-            if work:
-                print(f"[save_settings] 現在のワークプリセットの共通フィルター: {work.get('common_filters', [])}")
 
             with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
                 json.dump(settings, f, indent=2, ensure_ascii=False)
@@ -3035,28 +3907,35 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
         except Exception as e:
             print(f"Multi Filtering Outliner: 設定の保存に失敗: {e}")
 
-    def save_main_window_geometry(self):
-        """メインウィンドウのジオメトリを保存"""
-        geometry = self.geometry()
-        self.main_window_geometry = {
-            'x': geometry.x(),
-            'y': geometry.y(),
-            'width': geometry.width(),
-            'height': geometry.height()
-        }
+    def save_model_geometry(self):
+        """現在のモデルプリセットのジオメトリを保存"""
+        model = self.get_current_model()
+        if model:
+            geometry = self.geometry()
+            model['window_geometry'] = {
+                'x': geometry.x(),
+                'y': geometry.y(),
+                'width': geometry.width(),
+                'height': geometry.height()
+            }
 
-    def restore_main_window_geometry(self):
-        """メインウィンドウのジオメトリを復元"""
-        if self.main_window_geometry:
-            x = self.main_window_geometry.get('x')
-            y = self.main_window_geometry.get('y')
-            width = self.main_window_geometry.get('width', 800)
-            height = self.main_window_geometry.get('height', 600)
+    def restore_model_geometry(self):
+        """現在のモデルプリセットのジオメトリを復元"""
+        model = self.get_current_model()
+        if model and 'window_geometry' in model:
+            geometry_data = model['window_geometry']
+            x = geometry_data.get('x')
+            y = geometry_data.get('y')
+            width = geometry_data.get('width', 800)
+            height = geometry_data.get('height', 600)
 
             if x is not None and y is not None:
                 self.setGeometry(x, y, width, height)
             else:
                 self.resize(width, height)
+        else:
+            # デフォルトサイズ
+            self.resize(800, 600)
 
     def load_settings(self):
         """設定をファイルから読み込み"""
@@ -3097,9 +3976,6 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
             self.last_import_path = settings.get('last_import_path', "")
             self.last_export_path = settings.get('last_export_path', "")
 
-            # メインウィンドウのジオメトリを読み込み
-            self.main_window_geometry = settings.get('main_window_geometry', {})
-
             if version == 2:
                 # 新形式（階層構造）
                 self.projects = settings.get('projects', [])
@@ -3110,6 +3986,9 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
                 if not self.projects:
                     self.create_default_hierarchy()
                     return
+
+                # UUID形式のIDを数字形式に一括変換
+                self.migrate_uuid_to_numeric_ids()
 
                 # プロジェクトのコンボボックスを更新
                 for project in self.projects:
@@ -3128,6 +4007,10 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
                 print("Multi Filtering Outliner: 旧形式の設定を階層構造に変換します")
                 self.migrate_from_old_format(settings)
 
+            # current_model_indexが未設定の場合、設定から復元
+            if self.current_model_index < 0:
+                self.current_model_index = settings.get('current_model_index', -1)
+
             # 前回開いていたダイアログを復元
             self.restore_dialogs()
 
@@ -3136,6 +4019,39 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
             import traceback
             traceback.print_exc()
             self.create_default_hierarchy()
+
+    def migrate_uuid_to_numeric_ids(self):
+        """すべてのUUID形式のIDを数字形式に変換"""
+        converted_count = 0
+        for project in self.projects:
+            for model in project.get('models', []):
+                for work in model.get('works', []):
+                    phrase_presets = work.get('phrase_presets', [])
+                    used_ids = set()
+
+                    # まず既に数字形式のIDを収集
+                    for preset in phrase_presets:
+                        unique_id = preset.get('unique_id', '')
+                        if unique_id and unique_id.isdigit():
+                            used_ids.add(int(unique_id))
+
+                    # UUID形式のIDを数字形式に変換
+                    next_id = 1
+                    for preset in phrase_presets:
+                        unique_id = preset.get('unique_id', '')
+                        if not unique_id or not unique_id.isdigit():
+                            # 次の利用可能なIDを見つける
+                            while next_id in used_ids:
+                                next_id += 1
+                            preset['unique_id'] = str(next_id)
+                            used_ids.add(next_id)
+                            converted_count += 1
+                            next_id += 1
+
+        if converted_count > 0:
+            print(f"Multi Filtering Outliner: {converted_count}個のUUID形式のIDを数字形式に変換しました")
+            # 変換後の設定を保存
+            self.save_settings()
 
     def create_default_hierarchy(self):
         """デフォルトの階層構造を作成"""
@@ -3242,107 +4158,169 @@ class MultiFilteringOutlinerWidget(QtWidgets.QWidget):
 
         print(f"旧形式から{len(migrated_works)}個の作業プリセットを移行しました")
 
+    def close_all_dialogs(self):
+        """すべてのダイアログを閉じる（フラグは保持）"""
+        # 専用ダイアログを閉じる
+        dialogs_to_close = list(self.node_dialogs.values())
+        for dialog in dialogs_to_close:
+            if dialog.isVisible():
+                dialog._closing_from_main = True
+                dialog.close()
+        self.node_dialogs.clear()
+
+        # 共通ダイアログを閉じる
+        common_dialogs_to_close = list(self.common_dialogs.values())
+        for dialog in common_dialogs_to_close:
+            if dialog.isVisible():
+                dialog._closing_from_main = True
+                dialog.update_timer.stop()
+                dialog.close()
+        self.common_dialogs.clear()
+
+    def restore_model_dialogs(self):
+        """現在のモデルプリセットのダイアログを復元"""
+        if self.current_model_index < 0:
+            return
+
+        project = self.get_current_project()
+        if not project:
+            return
+
+        models = project.get('models', [])
+        if self.current_model_index >= len(models):
+            return
+
+        model = models[self.current_model_index]
+
+        # このモデル内のすべての作業プリセットをチェック
+        for work_index, work_data in enumerate(model.get('works', [])):
+            work_name = work_data.get('name', f"作業{work_index+1}")
+
+            # 各フレーズプリセットをチェック
+            for phrase_index, phrase_preset in enumerate(work_data.get('phrase_presets', [])):
+                unique_id = phrase_preset.get('unique_id', '')
+
+                # 専用ダイアログが開いていた場合
+                if phrase_preset.get('dialog_open', False):
+                    phrase_name = phrase_preset.get('name', f"フレーズ{phrase_index+1}")
+
+                    # 共通フィルターを取得
+                    common_filter_configs = []
+                    use_common_filter = phrase_preset.get('use_common_filter', True)
+                    if use_common_filter:
+                        for data in work_data.get('common_filters', []):
+                            if isinstance(data, dict) and data.get('enabled', True):
+                                text = data.get('text', '').strip()
+                                if text:
+                                    common_filter_configs.append({
+                                        'text': text,
+                                        'exact_token': data.get('exact_token', False)
+                                    })
+
+                    # フレーズ設定を収集
+                    include_configs = []
+                    exclude_configs = []
+
+                    phrase_data = phrase_preset.get('phrase_data', [])
+                    for data in phrase_data:
+                        if isinstance(data, dict) and data.get('enabled', True):
+                            text = data.get('text', '').strip()
+                            if text:
+                                config = {
+                                    'text': text,
+                                    'exact_token': data.get('exact_token', False)
+                                }
+                                if data.get('exclude', False):
+                                    exclude_configs.append(config)
+                                else:
+                                    include_configs.append(config)
+
+                    # 共通フィルターを含めたフィルタリング実行
+                    all_include_configs = common_filter_configs + include_configs
+
+                    if all_include_configs:
+                        match_mode = phrase_preset.get('match_mode', 'any')
+                        matched_nodes = multi_filtering_outliner.filter_nodes_by_phrase_configs(all_include_configs, match_mode)
+
+                        # 除外フィルタリング
+                        if exclude_configs:
+                            excluded_nodes = multi_filtering_outliner.filter_nodes_by_phrase_configs(exclude_configs, 'any')
+                            matched_nodes = [node for node in matched_nodes if node not in excluded_nodes]
+
+                        # DAGオブジェクトのみフィルタリング
+                        dag_only = phrase_preset.get('dag_only', False)
+                        if dag_only:
+                            import maya.cmds as cmds
+                            matched_nodes = [node for node in matched_nodes if cmds.objectType(node, isAType='dagNode')]
+
+                        # アルファベット順でソート
+                        nodes = sorted(matched_nodes, key=lambda x: x.split('|')[-1].lower())
+                    else:
+                        nodes = []
+
+                    # ダイアログの一意なキーとタイトルを作成
+                    dialog_key = f"{work_name}::{phrase_name}"
+                    dialog_title = f"{work_name} - {phrase_name}"
+
+                    # ダイアログを作成
+                    dialog = NodeListDialog(
+                        nodes,
+                        list_name=dialog_title,
+                        work_indices=(self.current_project_index, self.current_model_index, work_index),
+                        phrase_index=phrase_index,
+                        dialog_key=dialog_key,
+                        parent_widget=self,
+                        parent=self
+                    )
+                    self.node_dialogs[dialog_key] = dialog
+                    dialog.show()
+
+                    print(f"専用ダイアログを復元しました: {dialog_title}")
+
+                # 共通ダイアログが開いていた場合
+                common_dialog_open = phrase_preset.get('common_dialog_open', False)
+                if common_dialog_open and unique_id:
+                    # 共通ダイアログを作成
+                    dialog = CommonNodeListDialog(
+                        unique_id=unique_id,
+                        parent_widget=self,
+                        parent=self
+                    )
+                    self.common_dialogs[unique_id] = dialog
+                    dialog.show()
+
+                    print(f"共通ダイアログを復元しました: ID={unique_id}")
+
     def restore_dialogs(self):
-        """前回開いていたダイアログを復元"""
-        # 階層構造内のすべてのフレーズプリセットをチェック
-        for project_index, project in enumerate(self.projects):
-            for model_index, model in enumerate(project.get('models', [])):
-                for work_index, work_data in enumerate(model.get('works', [])):
-                    work_name = work_data.get('name', f"作業{work_index+1}")
-
-                    # 各フレーズプリセットをチェック
-                    for phrase_index, phrase_preset in enumerate(work_data.get('phrase_presets', [])):
-                        # ダイアログが開いていた場合
-                        if phrase_preset.get('dialog_open', False):
-                            phrase_name = phrase_preset.get('name', f"フレーズ{phrase_index+1}")
-
-                            # 共通フィルターを取得
-                            common_filter_configs = []
-                            use_common_filter = phrase_preset.get('use_common_filter', True)
-                            if use_common_filter:
-                                for data in work_data.get('common_filters', []):
-                                    if isinstance(data, dict) and data.get('enabled', True):
-                                        text = data.get('text', '').strip()
-                                        if text:
-                                            common_filter_configs.append({
-                                                'text': text,
-                                                'exact_token': data.get('exact_token', False)
-                                            })
-
-                            # フレーズ設定を収集
-                            include_configs = []
-                            exclude_configs = []
-
-                            phrase_data = phrase_preset.get('phrase_data', [])
-                            for data in phrase_data:
-                                if isinstance(data, dict) and data.get('enabled', True):
-                                    text = data.get('text', '').strip()
-                                    if text:
-                                        config = {
-                                            'text': text,
-                                            'exact_token': data.get('exact_token', False)
-                                        }
-                                        if data.get('exclude', False):
-                                            exclude_configs.append(config)
-                                        else:
-                                            include_configs.append(config)
-
-                            # 共通フィルターを含めたフィルタリング実行
-                            all_include_configs = common_filter_configs + include_configs
-
-                            if all_include_configs:
-                                match_mode = phrase_preset.get('match_mode', 'any')
-                                matched_nodes = multi_filtering_outliner.filter_nodes_by_phrase_configs(all_include_configs, match_mode)
-
-                                # 除外フィルタリング
-                                if exclude_configs:
-                                    excluded_nodes = multi_filtering_outliner.filter_nodes_by_phrase_configs(exclude_configs, 'any')
-                                    matched_nodes = [node for node in matched_nodes if node not in excluded_nodes]
-
-                                # DAGオブジェクトのみフィルタリング
-                                dag_only = phrase_preset.get('dag_only', False)
-                                if dag_only:
-                                    import maya.cmds as cmds
-                                    matched_nodes = [node for node in matched_nodes if cmds.objectType(node, isAType='dagNode')]
-
-                                # アルファベット順でソート
-                                nodes = sorted(matched_nodes, key=lambda x: x.split('|')[-1].lower())
-                            else:
-                                nodes = []
-
-                            # ダイアログの一意なキーとタイトルを作成
-                            dialog_key = f"{work_name}::{phrase_name}"
-                            dialog_title = f"{work_name} - {phrase_name}"
-
-                            # ダイアログを作成
-                            dialog = NodeListDialog(
-                                nodes,
-                                list_name=dialog_title,
-                                work_indices=(project_index, model_index, work_index),
-                                phrase_index=phrase_index,
-                                dialog_key=dialog_key,
-                                parent_widget=self,
-                                parent=self
-                            )
-                            self.node_dialogs[dialog_key] = dialog
-                            dialog.show()
-
-                            print(f"ダイアログを復元しました: {dialog_title}")
+        """前回開いていたダイアログを復元（初回起動時用）"""
+        # 現在のモデルプリセットのダイアログのみを復元
+        self.restore_model_dialogs()
 
     def closeEvent(self, event):
         """ウィンドウが閉じられる時に呼ばれる"""
+        # 現在のモデルのジオメトリを保存
+        if self.current_model_index >= 0:
+            self.save_model_geometry()
+
         # 現在の状態を保存
         if self.current_work_index >= 0:
             self.save_common_filters_state()
         if self.current_phrase_preset_index >= 0:
             self.save_current_phrase_preset_state()
 
-        # すべてのダイアログを閉じる
+        # すべての専用ダイアログを閉じる
         dialogs_to_close = list(self.node_dialogs.values())
         for dialog in dialogs_to_close:
             if dialog.isVisible():
                 # メインウィンドウから閉じられたことを示すフラグを設定
                 dialog._closing_from_main = True
+                dialog.close()
+
+        # すべての共通ダイアログを閉じる
+        common_dialogs_to_close = list(self.common_dialogs.values())
+        for dialog in common_dialogs_to_close:
+            if dialog.isVisible():
+                dialog.update_timer.stop()
                 dialog.close()
 
         # 設定を保存

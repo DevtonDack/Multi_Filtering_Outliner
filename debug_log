@@ -1,0 +1,265 @@
+
+[DEBUG] switch_to_phrase_preset: index=1
+[DEBUG] phrase_presets の数: 8
+[DEBUG] 切り替え先プリセット: AnimaVectorCalc
+[DEBUG] 切り替え先プリセットのID: 2
+[DEBUG] 現在のプリセット (index=0) の状態を保存します
+[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
+[DEBUG] 保存前のプリセットID: 1
+[DEBUG] UI上のID入力値: '1'
+[DEBUG] 保存後のプリセットID: 1
+[DEBUG] current_phrase_preset_index を 1 に更新しました
+[DEBUG] load_phrase_preset_to_ui を呼び出します
+[DEBUG] load_phrase_preset_to_ui: index=1
+[DEBUG] プリセット名: AnimaVectorCalc
+[DEBUG] _is_loading = True をセット
+[DEBUG] 復元するフレーズ数: 1
+[DEBUG] 復元するID (変換前): '2'
+[DEBUG] 最終的なID: '2'
+[DEBUG] preset_id_input.setText('2') を呼び出します
+[DEBUG] setText 成功（シグナルブロック使用）
+[DEBUG] on_refresh を呼び出します
+12個のノードが見つかりました
+[DEBUG] _is_loading = False をセット
+[DEBUG] load_phrase_preset_to_ui 完了
+[DEBUG] switch_to_phrase_preset 完了
+
+
+[DEBUG] switch_to_phrase_preset: index=2
+[DEBUG] phrase_presets の数: 8
+[DEBUG] 切り替え先プリセット: AnimaTargetRotate
+[DEBUG] 切り替え先プリセットのID: 3
+[DEBUG] 現在のプリセット (index=1) の状態を保存します
+[DEBUG] save_current_phrase_preset_state: index=1, name=AnimaVectorCalc
+[DEBUG] 保存前のプリセットID: 2
+[DEBUG] UI上のID入力値: '2'
+[DEBUG] 保存後のプリセットID: 2
+[DEBUG] current_phrase_preset_index を 2 に更新しました
+[DEBUG] load_phrase_preset_to_ui を呼び出します
+[DEBUG] load_phrase_preset_to_ui: index=2
+[DEBUG] プリセット名: AnimaTargetRotate
+[DEBUG] _is_loading = True をセット
+[DEBUG] 復元するフレーズ数: 1
+[DEBUG] 復元するID (変換前): '3'
+[DEBUG] 最終的なID: '3'
+[DEBUG] preset_id_input.setText('3') を呼び出します
+[DEBUG] setText 成功（シグナルブロック使用）
+[DEBUG] on_refresh を呼び出します
+6個のノードが見つかりました
+[DEBUG] _is_loading = False をセット
+[DEBUG] load_phrase_preset_to_ui 完了
+[DEBUG] switch_to_phrase_preset 完了
+
+[DEBUG] save_current_phrase_preset_state: index=2, name=AnimaTargetRotate
+[DEBUG] 保存前のプリセットID: 3
+[DEBUG] UI上のID入力値: '3'
+[DEBUG] 保存後のプリセットID: 3
+[DEBUG] save_current_phrase_preset_state: index=2, name=AnimaTargetRotate
+[DEBUG] 保存前のプリセットID: 3
+[DEBUG] UI上のID入力値: '3'
+[DEBUG] 保存後のプリセットID: 3
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[load_common_filters_to_ui] 読み込み: 2個のフィルター
+[load_common_filters_to_ui] 内容: [{'text': 'FOREARM', 'enabled': True, 'exclude': False, 'exact_token': False}, {'text': 'TWIST', 'enabled': True, 'exclude': False, 'exact_token': False}]
+
+[DEBUG] switch_to_phrase_preset: index=0
+[DEBUG] phrase_presets の数: 7
+[DEBUG] 切り替え先プリセット: AnimaSourceRotate
+[DEBUG] 切り替え先プリセットのID: 1
+[DEBUG] current_phrase_preset_index を 0 に更新しました
+[DEBUG] load_phrase_preset_to_ui を呼び出します
+[DEBUG] load_phrase_preset_to_ui: index=0
+[DEBUG] プリセット名: AnimaSourceRotate
+[DEBUG] _is_loading = True をセット
+[DEBUG] 復元するフレーズ数: 3
+[DEBUG] 復元するID (変換前): '1'
+[DEBUG] 最終的なID: '1'
+[DEBUG] preset_id_input.setText('1') を呼び出します
+[DEBUG] setText 成功（シグナルブロック使用）
+[DEBUG] on_refresh を呼び出します
+0個のノードが見つかりました
+[DEBUG] _is_loading = False をセット
+[DEBUG] load_phrase_preset_to_ui 完了
+[DEBUG] switch_to_phrase_preset 完了
+
+
+[DEBUG] switch_to_phrase_preset: index=2
+[DEBUG] phrase_presets の数: 7
+[DEBUG] 切り替え先プリセット: AnimaTargetRotate
+[DEBUG] 切り替え先プリセットのID: 3
+[DEBUG] 現在のプリセット (index=0) の状態を保存します
+[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
+[DEBUG] 保存前のプリセットID: 1
+[DEBUG] UI上のID入力値: '1'
+[DEBUG] 保存後のプリセットID: 1
+[DEBUG] current_phrase_preset_index を 2 に更新しました
+[DEBUG] load_phrase_preset_to_ui を呼び出します
+[DEBUG] load_phrase_preset_to_ui: index=2
+[DEBUG] プリセット名: AnimaTargetRotate
+[DEBUG] _is_loading = True をセット
+[DEBUG] 復元するフレーズ数: 1
+[DEBUG] 復元するID (変換前): '3'
+[DEBUG] 最終的なID: '3'
+[DEBUG] preset_id_input.setText('3') を呼び出します
+[DEBUG] setText 成功（シグナルブロック使用）
+[DEBUG] on_refresh を呼び出します
+6個のノードが見つかりました
+[DEBUG] _is_loading = False をセット
+[DEBUG] load_phrase_preset_to_ui 完了
+[DEBUG] switch_to_phrase_preset 完了
+
+
+[DEBUG] switch_to_phrase_preset: index=4
+[DEBUG] phrase_presets の数: 7
+[DEBUG] 切り替え先プリセット: Driver
+[DEBUG] 切り替え先プリセットのID: 5
+[DEBUG] 現在のプリセット (index=2) の状態を保存します
+[DEBUG] save_current_phrase_preset_state: index=2, name=AnimaTargetRotate
+[DEBUG] 保存前のプリセットID: 3
+[DEBUG] UI上のID入力値: '3'
+[DEBUG] 保存後のプリセットID: 3
+[DEBUG] current_phrase_preset_index を 4 に更新しました
+[DEBUG] load_phrase_preset_to_ui を呼び出します
+[DEBUG] load_phrase_preset_to_ui: index=4
+[DEBUG] プリセット名: Driver
+[DEBUG] _is_loading = True をセット
+[DEBUG] 復元するフレーズ数: 1
+[DEBUG] 復元するID (変換前): '5'
+[DEBUG] 最終的なID: '5'
+[DEBUG] preset_id_input.setText('5') を呼び出します
+[DEBUG] setText 成功（シグナルブロック使用）
+[DEBUG] on_refresh を呼び出します
+[DEBUG] _is_loading = False をセット
+[DEBUG] load_phrase_preset_to_ui 完了
+[DEBUG] switch_to_phrase_preset 完了
+
+[DEBUG] save_current_phrase_preset_state: index=4, name=Driver
+[DEBUG] 保存前のプリセットID: 5
+[DEBUG] UI上のID入力値: '5'
+[DEBUG] 保存後のプリセットID: 5
+[DEBUG] save_current_phrase_preset_state: index=4, name=Driver
+[DEBUG] 保存前のプリセットID: 5
+[DEBUG] UI上のID入力値: '5'
+[DEBUG] 保存後のプリセットID: 5
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[load_common_filters_to_ui] 読み込み: 4個のフィルター
+[load_common_filters_to_ui] 内容: [{'text': 'HAND', 'enabled': True, 'exclude': False, 'exact_token': False}, {'text': 'HLP', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': 'TWIST', 'enabled': True, 'exclude': True, 'exact_token': False}, {'text': 'R', 'enabled': True, 'exclude': False, 'exact_token': True}]
+
+[DEBUG] switch_to_phrase_preset: index=0
+[DEBUG] phrase_presets の数: 7
+[DEBUG] 切り替え先プリセット: AnimaSourceRotate
+[DEBUG] 切り替え先プリセットのID: 6
+[DEBUG] current_phrase_preset_index を 0 に更新しました
+[DEBUG] load_phrase_preset_to_ui を呼び出します
+[DEBUG] load_phrase_preset_to_ui: index=0
+[DEBUG] プリセット名: AnimaSourceRotate
+[DEBUG] _is_loading = True をセット
+[DEBUG] 復元するフレーズ数: 3
+[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
+[DEBUG] 保存前のプリセットID: 6
+[DEBUG] UI上のID入力値: '5'
+[DEBUG] 保存後のプリセットID: 5
+3個のノードが見つかりました
+[DEBUG] save_settings: _is_loading=True のため状態保存をスキップ
+Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG] 復元するID (変換前): '5'
+[DEBUG] 最終的なID: '5'
+[DEBUG] preset_id_input.setText('5') を呼び出します
+[DEBUG] setText 成功（シグナルブロック使用）
+[DEBUG] on_refresh を呼び出します
+3個のノードが見つかりました
+[DEBUG] _is_loading = False をセット
+[DEBUG] load_phrase_preset_to_ui 完了
+[DEBUG] switch_to_phrase_preset 完了
+
+
+[DEBUG] switch_to_phrase_preset: index=1
+[DEBUG] phrase_presets の数: 7
+[DEBUG] 切り替え先プリセット: AnimaVectorCalc
+[DEBUG] 切り替え先プリセットのID: 6
+[DEBUG] 現在のプリセット (index=0) の状態を保存します
+[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
+[DEBUG] 保存前のプリセットID: 5
+[DEBUG] UI上のID入力値: '5'
+[DEBUG] 保存後のプリセットID: 5
+[DEBUG] current_phrase_preset_index を 1 に更新しました
+[DEBUG] load_phrase_preset_to_ui を呼び出します
+[DEBUG] load_phrase_preset_to_ui: index=1
+[DEBUG] プリセット名: AnimaVectorCalc
+[DEBUG] _is_loading = True をセット
+[DEBUG] 復元するフレーズ数: 2
+[DEBUG] save_current_phrase_preset_state: index=1, name=AnimaVectorCalc
+[DEBUG] 保存前のプリセットID: 6
+[DEBUG] UI上のID入力値: '5'
+[DEBUG] 保存後のプリセットID: 5
+3個のノードが見つかりました
+[DEBUG] save_settings: _is_loading=True のため状態保存をスキップ
+Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG] 復元するID (変換前): '5'
+[DEBUG] 最終的なID: '5'
+[DEBUG] preset_id_input.setText('5') を呼び出します
+[DEBUG] setText 成功（シグナルブロック使用）
+[DEBUG] on_refresh を呼び出します
+3個のノードが見つかりました
+[DEBUG] _is_loading = False をセット
+[DEBUG] load_phrase_preset_to_ui 完了
+[DEBUG] switch_to_phrase_preset 完了
+
+
+[DEBUG] switch_to_phrase_preset: index=2
+[DEBUG] phrase_presets の数: 7
+[DEBUG] 切り替え先プリセット: AnimaTargetRotate
+[DEBUG] 切り替え先プリセットのID: 3
+[DEBUG] 現在のプリセット (index=1) の状態を保存します
+[DEBUG] save_current_phrase_preset_state: index=1, name=AnimaVectorCalc
+[DEBUG] 保存前のプリセットID: 5
+[DEBUG] UI上のID入力値: '5'
+[DEBUG] 保存後のプリセットID: 5
+[DEBUG] current_phrase_preset_index を 2 に更新しました
+[DEBUG] load_phrase_preset_to_ui を呼び出します
+[DEBUG] load_phrase_preset_to_ui: index=2
+[DEBUG] プリセット名: AnimaTargetRotate
+[DEBUG] _is_loading = True をセット
+[DEBUG] 復元するフレーズ数: 2
+[DEBUG] 復元するID (変換前): '3'
+[DEBUG] 最終的なID: '3'
+[DEBUG] preset_id_input.setText('3') を呼び出します
+[DEBUG] setText 成功（シグナルブロック使用）
+[DEBUG] on_refresh を呼び出します
+3個のノードが見つかりました
+[DEBUG] _is_loading = False をセット
+[DEBUG] load_phrase_preset_to_ui 完了
+[DEBUG] switch_to_phrase_preset 完了
+
+
+[DEBUG] switch_to_phrase_preset: index=0
+[DEBUG] phrase_presets の数: 7
+[DEBUG] 切り替え先プリセット: AnimaSourceRotate
+[DEBUG] 切り替え先プリセットのID: 5
+[DEBUG] 現在のプリセット (index=2) の状態を保存します
+[DEBUG] save_current_phrase_preset_state: index=2, name=AnimaTargetRotate
+[DEBUG] 保存前のプリセットID: 3
+[DEBUG] UI上のID入力値: '3'
+[DEBUG] 保存後のプリセットID: 3
+[DEBUG] current_phrase_preset_index を 0 に更新しました
+[DEBUG] load_phrase_preset_to_ui を呼び出します
+[DEBUG] load_phrase_preset_to_ui: index=0
+[DEBUG] プリセット名: AnimaSourceRotate
+[DEBUG] _is_loading = True をセット
+[DEBUG] 復元するフレーズ数: 3
+[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
+[DEBUG] 保存前のプリセットID: 5
+[DEBUG] UI上のID入力値: '3'
+[DEBUG] 保存後のプリセットID: 3
+3個のノードが見つかりました
+[DEBUG] save_settings: _is_loading=True のため状態保存をスキップ
+Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG] 復元するID (変換前): '3'
+[DEBUG] 最終的なID: '3'
+[DEBUG] preset_id_input.setText('3') を呼び出します
+[DEBUG] setText 成功（シグナルブロック使用）
+[DEBUG] on_refresh を呼び出します
+3個のノードが見つかりました
+[DEBUG] _is_loading = False をセット
+[DEBUG] load_phrase_preset_to_ui 完了
+[DEBUG] switch_to_phrase_preset 完了
