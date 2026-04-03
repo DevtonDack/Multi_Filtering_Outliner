@@ -1,0 +1,1387 @@
+{
+  "version": 2,
+  "projects": [
+    {
+      "name": "プロジェクト1",
+      "models": [
+        {
+          "name": "モデル1",
+          "works": [
+            {
+              "name": "FOREARM_SUB",
+              "phrase_data": [
+                {
+                  "text": "AnimaSourceRotate",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "HAND",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "R",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                }
+              ],
+              "match_mode": "all",
+              "dag_only": false,
+              "dialog_open": true,
+              "dialog_geometry": {
+                "x": 3936,
+                "y": 645,
+                "width": 400,
+                "height": 332
+              },
+              "phrase_presets": [
+                {
+                  "name": "AnimaSourceRotate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaSourceRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HAND",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "R",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": false,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 3971,
+                    "y": 817,
+                    "width": 400,
+                    "height": 332
+                  },
+                  "unique_id": "1",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 3887,
+                    "y": 1128,
+                    "width": 400,
+                    "height": 205
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaVectorCalc",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaVectorCalc",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4471,
+                    "y": 800,
+                    "width": 400,
+                    "height": 332
+                  },
+                  "unique_id": "2",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 4235,
+                    "y": 1094,
+                    "width": 448,
+                    "height": 293
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaTargetRotate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaTargetRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4543,
+                    "y": 661,
+                    "width": 455,
+                    "height": 332
+                  },
+                  "unique_id": "3",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 4901,
+                    "y": 1244,
+                    "width": 433,
+                    "height": 238
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaTargetTranslate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaTargetTranslate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1784,
+                    "y": 1035,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "4",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "Driver",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaSourceRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HAND",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1989,
+                    "y": 1425,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "5",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "BONE",
+                  "phrase_data": [
+                    {
+                      "text": "FOREARM",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HLP",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "SUB",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    },
+                    {
+                      "text": "0",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "L",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1989,
+                    "y": 1425,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "6",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "RBF",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaRbfSolver",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1862,
+                    "y": 1346,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "7",
+                  "use_common_dialog": false,
+                  "common_dialog_geometry": {
+                    "x": 5266,
+                    "y": 624,
+                    "width": 400,
+                    "height": 207
+                  },
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "AnimaRbfSolver",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaRbfSolver",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1989,
+                    "y": 1470,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "8",
+                  "use_common_dialog": true,
+                  "common_dialog_open": true,
+                  "common_dialog_geometry": {
+                    "x": 5230,
+                    "y": 1158,
+                    "width": 400,
+                    "height": 194
+                  }
+                },
+                {
+                  "name": "test",
+                  "unique_id": "9",
+                  "phrase_data": [
+                    {
+                      "text": "",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "any",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "use_common_dialog": false,
+                  "dialog_open": false,
+                  "common_dialog_open": false
+                }
+              ],
+              "common_filters": [
+                {
+                  "text": "FOREARM",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "SUB",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": false
+                },
+                {
+                  "text": "R",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "0",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                }
+              ]
+            },
+            {
+              "name": "FOREARM_TWIST",
+              "phrase_data": [
+                {
+                  "text": "AnimaSourceRotate",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "HAND",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "L",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                }
+              ],
+              "match_mode": "all",
+              "dag_only": false,
+              "dialog_open": true,
+              "dialog_geometry": {
+                "x": 3936,
+                "y": 645,
+                "width": 400,
+                "height": 332
+              },
+              "phrase_presets": [
+                {
+                  "name": "AnimaSourceRotate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaSourceRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HAND",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "L",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": false,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 3928,
+                    "y": 538,
+                    "width": 400,
+                    "height": 332
+                  },
+                  "unique_id": "1",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 3887,
+                    "y": 1128,
+                    "width": 400,
+                    "height": 205
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaVectorCalc",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaVectorCalc",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4365,
+                    "y": 561,
+                    "width": 437,
+                    "height": 391
+                  },
+                  "unique_id": "2",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 4235,
+                    "y": 1094,
+                    "width": 448,
+                    "height": 293
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaTargetRotate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaTargetRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4797,
+                    "y": 603,
+                    "width": 488,
+                    "height": 296
+                  },
+                  "unique_id": "3",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 4901,
+                    "y": 1244,
+                    "width": 433,
+                    "height": 238
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaTargetTranslate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaTargetTranslate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4828,
+                    "y": 568,
+                    "width": 400,
+                    "height": 332
+                  },
+                  "unique_id": "4",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "Driver",
+                  "phrase_data": [
+                    {
+                      "text": "",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "unique_id": "5",
+                  "use_common_dialog": false,
+                  "dialog_open": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "BONE",
+                  "phrase_data": [
+                    {
+                      "text": "FOREARM",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HLP",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "TWIST",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    },
+                    {
+                      "text": "0",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "L",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": true,
+                  "use_common_filter": false,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4409,
+                    "y": 112,
+                    "width": 400,
+                    "height": 332
+                  },
+                  "unique_id": "6",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 4049,
+                    "y": 746,
+                    "width": 521,
+                    "height": 304
+                  },
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "AnimaRbfSolver",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaRbfSolver",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    },
+                    {
+                      "text": "0",
+                      "enabled": false,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 5269,
+                    "y": 574,
+                    "width": 400,
+                    "height": 324
+                  },
+                  "unique_id": "7",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 5238,
+                    "y": 1236,
+                    "width": 486,
+                    "height": 225
+                  },
+                  "common_dialog_open": false
+                }
+              ],
+              "common_filters": [
+                {
+                  "text": "FOREARM",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "TWIST",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": false
+                },
+                {
+                  "text": "L",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "0",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                }
+              ]
+            },
+            {
+              "name": "HAND_TWIST",
+              "phrase_data": [
+                {
+                  "text": "AnimaRbfSolver",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": false
+                }
+              ],
+              "match_mode": "all",
+              "dag_only": false,
+              "dialog_open": true,
+              "dialog_geometry": {
+                "x": 3936,
+                "y": 645,
+                "width": 400,
+                "height": 332
+              },
+              "phrase_presets": [
+                {
+                  "name": "AnimaSourceRotate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaSourceRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HAND",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "R",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": false,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 3971,
+                    "y": 817,
+                    "width": 400,
+                    "height": 332
+                  },
+                  "unique_id": "1",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 3887,
+                    "y": 1128,
+                    "width": 400,
+                    "height": 205
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaVectorCalc",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaVectorCalc",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1532,
+                    "y": 692,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "2",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 4235,
+                    "y": 1094,
+                    "width": 448,
+                    "height": 293
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaTargetRotate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaTargetRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4543,
+                    "y": 661,
+                    "width": 455,
+                    "height": 332
+                  },
+                  "unique_id": "3",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 4901,
+                    "y": 1244,
+                    "width": 433,
+                    "height": 238
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaTargetTranslate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaTargetTranslate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1784,
+                    "y": 1035,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "4",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "Driver",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaSourceRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HAND",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1989,
+                    "y": 1425,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "5",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "BONE",
+                  "phrase_data": [
+                    {
+                      "text": "FOREARM",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HLP",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "SUB",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    },
+                    {
+                      "text": "0",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "L",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1989,
+                    "y": 1425,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "6",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "RBF",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaRbfSolver",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1862,
+                    "y": 1346,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "7",
+                  "use_common_dialog": false,
+                  "common_dialog_geometry": {
+                    "x": 5266,
+                    "y": 624,
+                    "width": 400,
+                    "height": 207
+                  },
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "AnimaRbfSolver",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaRbfSolver",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1989,
+                    "y": 1470,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "8",
+                  "use_common_dialog": false,
+                  "common_dialog_open": true,
+                  "common_dialog_geometry": {
+                    "x": 5230,
+                    "y": 1158,
+                    "width": 400,
+                    "height": 194
+                  }
+                },
+                {
+                  "name": "test",
+                  "unique_id": "9",
+                  "phrase_data": [
+                    {
+                      "text": "",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "any",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "use_common_dialog": false,
+                  "dialog_open": false,
+                  "common_dialog_open": false
+                }
+              ],
+              "common_filters": [
+                {
+                  "text": "HAND",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "TWIST",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": false
+                },
+                {
+                  "text": "R",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "0",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                }
+              ]
+            }
+          ],
+          "window_geometry": {
+            "x": 2322,
+            "y": 593,
+            "width": 800,
+            "height": 1303
+          }
+        },
+        {
+          "name": "Model_B",
+          "works": [
+            {
+              "name": "FOREARM_SUB_1",
+              "phrase_data": [
+                {
+                  "text": "AnimaSourceRotate",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "FOREARM",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": true
+                },
+                {
+                  "text": "R",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": false
+                }
+              ],
+              "match_mode": "all",
+              "dag_only": true,
+              "dialog_open": true,
+              "dialog_geometry": {
+                "x": 3936,
+                "y": 645,
+                "width": 400,
+                "height": 332
+              },
+              "phrase_presets": [
+                {
+                  "name": "AnimaSourceRotate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaSourceRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "FOREARM",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "R",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": true,
+                  "use_common_filter": false,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 3971,
+                    "y": 817,
+                    "width": 400,
+                    "height": 332
+                  },
+                  "unique_id": "1",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 3879,
+                    "y": 1146,
+                    "width": 400,
+                    "height": 205
+                  },
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "AnimaVectorCalc",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaVectorCalc",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": false,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1532,
+                    "y": 692,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "2",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 4104,
+                    "y": 722,
+                    "width": 448,
+                    "height": 293
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaTargetRotate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaTargetRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": false,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4543,
+                    "y": 661,
+                    "width": 455,
+                    "height": 332
+                  },
+                  "unique_id": "3",
+                  "use_common_dialog": true,
+                  "common_dialog_geometry": {
+                    "x": 4568,
+                    "y": 745,
+                    "width": 433,
+                    "height": 238
+                  },
+                  "common_dialog_open": true
+                },
+                {
+                  "name": "AnimaTargetTranslate",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaTargetTranslate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1784,
+                    "y": 1035,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "4",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "Driver",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaSourceRotate",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HAND",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1989,
+                    "y": 1425,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "5",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "BONE",
+                  "phrase_data": [
+                    {
+                      "text": "FOREARM",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "HLP",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "SUB",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    },
+                    {
+                      "text": "0",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    },
+                    {
+                      "text": "L",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": true
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4901,
+                    "y": 742,
+                    "width": 400,
+                    "height": 332
+                  },
+                  "unique_id": "6",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "RBF",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaRbfSolver",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 1862,
+                    "y": 1346,
+                    "width": 400,
+                    "height": 500
+                  },
+                  "unique_id": "7",
+                  "use_common_dialog": false,
+                  "common_dialog_geometry": {
+                    "x": 5266,
+                    "y": 624,
+                    "width": 400,
+                    "height": 207
+                  },
+                  "common_dialog_open": false
+                },
+                {
+                  "name": "AnimaRbfSolver",
+                  "phrase_data": [
+                    {
+                      "text": "AnimaRbfSolver",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "all",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "dialog_open": false,
+                  "dialog_geometry": {
+                    "x": 4552,
+                    "y": 661,
+                    "width": 400,
+                    "height": 332
+                  },
+                  "unique_id": "8",
+                  "use_common_dialog": false,
+                  "common_dialog_open": false,
+                  "common_dialog_geometry": {
+                    "x": 5230,
+                    "y": 1158,
+                    "width": 400,
+                    "height": 194
+                  }
+                },
+                {
+                  "name": "test",
+                  "unique_id": "9",
+                  "phrase_data": [
+                    {
+                      "text": "",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "any",
+                  "dag_only": false,
+                  "use_common_filter": true,
+                  "use_common_dialog": false,
+                  "dialog_open": false,
+                  "common_dialog_open": false
+                }
+              ],
+              "common_filters": [
+                {
+                  "text": "leg",
+                  "enabled": false,
+                  "exclude": false,
+                  "exact_token": false
+                }
+              ]
+            }
+          ],
+          "window_geometry": {
+            "x": 1822,
+            "y": 506,
+            "width": 800,
+            "height": 1261
+          }
+        },
+        {
+          "name": "Model_C",
+          "works": [
+            {
+              "name": "WOT_C",
+              "common_filters": [
+                {
+                  "text": "",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": false
+                }
+              ],
+              "phrase_presets": [
+                {
+                  "name": "フレーズ1",
+                  "phrase_data": [
+                    {
+                      "text": "arm",
+                      "enabled": true,
+                      "exclude": false,
+                      "exact_token": false
+                    }
+                  ],
+                  "match_mode": "any",
+                  "dag_only": false,
+                  "use_common_filter": false,
+                  "unique_id": "1",
+                  "use_common_dialog": true,
+                  "common_dialog_open": true,
+                  "dialog_open": false,
+                  "common_dialog_geometry": {
+                    "x": 4006,
+                    "y": 791,
+                    "width": 400,
+                    "height": 205
+                  }
+                }
+              ],
+              "phrase_data": [
+                {
+                  "text": "arm",
+                  "enabled": true,
+                  "exclude": false,
+                  "exact_token": false
+                }
+              ],
+              "match_mode": "any",
+              "dag_only": false
+            }
+          ],
+          "window_geometry": {
+            "x": 1822,
+            "y": 506,
+            "width": 800,
+            "height": 1230
+          }
+        }
+      ]
+    }
+  ],
+  "current_project_index": 0,
+  "current_model_index": 0,
+  "current_work_index": 0,
+  "last_import_path": "C:/Users/segawa_misato/Documents/Script_test/json_exported/simple_outliner",
+  "last_export_path": "C:/Users/segawa_misato/Documents/Script_test/json_exported/simple_outliner",
+  "lists": [],
+  "current_index": -1
+}

@@ -1,265 +1,250 @@
+// Result: scriptEditorPanel1Window|scriptEditorPanel1|formLayout110|formLayout112|paneLayout2|cmdScrollFieldReporter1
+import sys;sys.path.insert(0,r'\\wsl.localhost\Ubuntu-24.04\home\devton_dack_lts\Multi_Filtering_Outliner')if r'\\wsl.localhost\Ubuntu-24.04\home\devton_dack_lts\Multi_Filtering_Outliner'not in sys.path else None;exec("import importlib;[sys.modules.pop(n,None)for n in sorted([n for n in list(sys.modules.keys())if n in['ui','tools']or n.startswith('ui.')or n.startswith('tools.')],key=lambda x:x.count('.'),reverse=True)];from ui.multi_filtering_outliner_ui import MultiFilteringOutlinerWidget;globals().update({'multi_filtering_outliner_window':MultiFilteringOutlinerWidget()});multi_filtering_outliner_window.show()")
 
-[DEBUG] switch_to_phrase_preset: index=1
-[DEBUG] phrase_presets の数: 8
-[DEBUG] 切り替え先プリセット: AnimaVectorCalc
-[DEBUG] 切り替え先プリセットのID: 2
-[DEBUG] 現在のプリセット (index=0) の状態を保存します
-[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
-[DEBUG] 保存前のプリセットID: 1
-[DEBUG] UI上のID入力値: '1'
-[DEBUG] 保存後のプリセットID: 1
-[DEBUG] current_phrase_preset_index を 1 に更新しました
-[DEBUG] load_phrase_preset_to_ui を呼び出します
-[DEBUG] load_phrase_preset_to_ui: index=1
-[DEBUG] プリセット名: AnimaVectorCalc
-[DEBUG] _is_loading = True をセット
-[DEBUG] 復元するフレーズ数: 1
-[DEBUG] 復元するID (変換前): '2'
-[DEBUG] 最終的なID: '2'
-[DEBUG] preset_id_input.setText('2') を呼び出します
-[DEBUG] setText 成功（シグナルブロック使用）
-[DEBUG] on_refresh を呼び出します
-12個のノードが見つかりました
-[DEBUG] _is_loading = False をセット
-[DEBUG] load_phrase_preset_to_ui 完了
-[DEBUG] switch_to_phrase_preset 完了
-
-
-[DEBUG] switch_to_phrase_preset: index=2
-[DEBUG] phrase_presets の数: 8
-[DEBUG] 切り替え先プリセット: AnimaTargetRotate
-[DEBUG] 切り替え先プリセットのID: 3
-[DEBUG] 現在のプリセット (index=1) の状態を保存します
-[DEBUG] save_current_phrase_preset_state: index=1, name=AnimaVectorCalc
-[DEBUG] 保存前のプリセットID: 2
-[DEBUG] UI上のID入力値: '2'
-[DEBUG] 保存後のプリセットID: 2
-[DEBUG] current_phrase_preset_index を 2 に更新しました
-[DEBUG] load_phrase_preset_to_ui を呼び出します
-[DEBUG] load_phrase_preset_to_ui: index=2
-[DEBUG] プリセット名: AnimaTargetRotate
-[DEBUG] _is_loading = True をセット
-[DEBUG] 復元するフレーズ数: 1
-[DEBUG] 復元するID (変換前): '3'
-[DEBUG] 最終的なID: '3'
-[DEBUG] preset_id_input.setText('3') を呼び出します
-[DEBUG] setText 成功（シグナルブロック使用）
-[DEBUG] on_refresh を呼び出します
-6個のノードが見つかりました
-[DEBUG] _is_loading = False をセット
-[DEBUG] load_phrase_preset_to_ui 完了
-[DEBUG] switch_to_phrase_preset 完了
-
-[DEBUG] save_current_phrase_preset_state: index=2, name=AnimaTargetRotate
-[DEBUG] 保存前のプリセットID: 3
-[DEBUG] UI上のID入力値: '3'
-[DEBUG] 保存後のプリセットID: 3
-[DEBUG] save_current_phrase_preset_state: index=2, name=AnimaTargetRotate
-[DEBUG] 保存前のプリセットID: 3
-[DEBUG] UI上のID入力値: '3'
-[DEBUG] 保存後のプリセットID: 3
-Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
-[load_common_filters_to_ui] 読み込み: 2個のフィルター
-[load_common_filters_to_ui] 内容: [{'text': 'FOREARM', 'enabled': True, 'exclude': False, 'exact_token': False}, {'text': 'TWIST', 'enabled': True, 'exclude': False, 'exact_token': False}]
-
-[DEBUG] switch_to_phrase_preset: index=0
-[DEBUG] phrase_presets の数: 7
-[DEBUG] 切り替え先プリセット: AnimaSourceRotate
-[DEBUG] 切り替え先プリセットのID: 1
-[DEBUG] current_phrase_preset_index を 0 に更新しました
-[DEBUG] load_phrase_preset_to_ui を呼び出します
-[DEBUG] load_phrase_preset_to_ui: index=0
-[DEBUG] プリセット名: AnimaSourceRotate
-[DEBUG] _is_loading = True をセット
-[DEBUG] 復元するフレーズ数: 3
-[DEBUG] 復元するID (変換前): '1'
-[DEBUG] 最終的なID: '1'
-[DEBUG] preset_id_input.setText('1') を呼び出します
-[DEBUG] setText 成功（シグナルブロック使用）
-[DEBUG] on_refresh を呼び出します
+Multi Filtering Outliner: Using built-in FlowLayout implementation
+Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[load_common_filters_to_ui] 読み込み: 4個のフィルター
+[load_common_filters_to_ui] 内容: [{'text': 'FOREARM', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': 'SUB', 'enabled': True, 'exclude': False, 'exact_token': False}, {'text': 'R', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': '0', 'enabled': True, 'exclude': False, 'exact_token': True}]
 0個のノードが見つかりました
-[DEBUG] _is_loading = False をセット
-[DEBUG] load_phrase_preset_to_ui 完了
-[DEBUG] switch_to_phrase_preset 完了
-
-
-[DEBUG] switch_to_phrase_preset: index=2
-[DEBUG] phrase_presets の数: 7
-[DEBUG] 切り替え先プリセット: AnimaTargetRotate
-[DEBUG] 切り替え先プリセットのID: 3
-[DEBUG] 現在のプリセット (index=0) の状態を保存します
-[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
-[DEBUG] 保存前のプリセットID: 1
-[DEBUG] UI上のID入力値: '1'
-[DEBUG] 保存後のプリセットID: 1
-[DEBUG] current_phrase_preset_index を 2 に更新しました
-[DEBUG] load_phrase_preset_to_ui を呼び出します
-[DEBUG] load_phrase_preset_to_ui: index=2
-[DEBUG] プリセット名: AnimaTargetRotate
-[DEBUG] _is_loading = True をセット
-[DEBUG] 復元するフレーズ数: 1
-[DEBUG] 復元するID (変換前): '3'
-[DEBUG] 最終的なID: '3'
-[DEBUG] preset_id_input.setText('3') を呼び出します
-[DEBUG] setText 成功（シグナルブロック使用）
-[DEBUG] on_refresh を呼び出します
-6個のノードが見つかりました
-[DEBUG] _is_loading = False をセット
-[DEBUG] load_phrase_preset_to_ui 完了
-[DEBUG] switch_to_phrase_preset 完了
-
-
-[DEBUG] switch_to_phrase_preset: index=4
-[DEBUG] phrase_presets の数: 7
-[DEBUG] 切り替え先プリセット: Driver
-[DEBUG] 切り替え先プリセットのID: 5
-[DEBUG] 現在のプリセット (index=2) の状態を保存します
-[DEBUG] save_current_phrase_preset_state: index=2, name=AnimaTargetRotate
-[DEBUG] 保存前のプリセットID: 3
-[DEBUG] UI上のID入力値: '3'
-[DEBUG] 保存後のプリセットID: 3
-[DEBUG] current_phrase_preset_index を 4 に更新しました
-[DEBUG] load_phrase_preset_to_ui を呼び出します
-[DEBUG] load_phrase_preset_to_ui: index=4
-[DEBUG] プリセット名: Driver
-[DEBUG] _is_loading = True をセット
-[DEBUG] 復元するフレーズ数: 1
-[DEBUG] 復元するID (変換前): '5'
-[DEBUG] 最終的なID: '5'
-[DEBUG] preset_id_input.setText('5') を呼び出します
-[DEBUG] setText 成功（シグナルブロック使用）
-[DEBUG] on_refresh を呼び出します
-[DEBUG] _is_loading = False をセット
-[DEBUG] load_phrase_preset_to_ui 完了
-[DEBUG] switch_to_phrase_preset 完了
-
-[DEBUG] save_current_phrase_preset_state: index=4, name=Driver
-[DEBUG] 保存前のプリセットID: 5
-[DEBUG] UI上のID入力値: '5'
-[DEBUG] 保存後のプリセットID: 5
-[DEBUG] save_current_phrase_preset_state: index=4, name=Driver
-[DEBUG] 保存前のプリセットID: 5
-[DEBUG] UI上のID入力値: '5'
-[DEBUG] 保存後のプリセットID: 5
+Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+3個のノードが見つかりました
+Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+3個のノードが見つかりました
+Multi Filtering Outliner: 設定を読み込みました（階層構造）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+共通ダイアログを復元しました: ID=1, 位置 x=3887, y=568
+[DEBUG resizeEvent] ウィンドウリサイズ: w=176, h=30, モデル='モデル1')
+[DEBUG moveEvent] ウィンドウ移動: x=1870, y=1088, モデル='モデル1'
+共通ダイアログを復元しました: ID=2, 位置 x=4245, y=533
+共通ダイアログを復元しました: ID=3, 位置 x=4714, y=564
+共通ダイアログを復元しました: ID=5, 位置 x=3867, y=257
+共通ダイアログを復元しました: ID=6, 位置 x=4355, y=214
+共通ダイアログを復元しました: ID=7, 位置 x=5183, y=511
+[DEBUG restore_model_geometry] current_model_index=0
+[DEBUG restore_model_geometry] project=プロジェクト1
+[DEBUG restore_model_geometry] model=モデル1
+[DEBUG restore_model_geometry] モデル 'モデル1' のジオメトリを復元: x=2357, y=580, w=658, h=1303
+[DEBUG restore_model_geometry] setGeometry実行後の実際の位置: x=2357, y=580
+[DEBUG moveEvent] ウィンドウ移動: x=2357, y=580, モデル='モデル1'
+[DEBUG resizeEvent] ウィンドウリサイズ: w=658, h=1303, モデル='モデル1')
+[DEBUG on_model_changed] ========== 開始 ==========
+[DEBUG on_model_changed] 現在のインデックス=0, 新規インデックス=1
+[DEBUG on_model_changed] 現在のモデル名=モデル1
+[DEBUG on_model_changed] 新規モデル名=Model_B
+[DEBUG on_model_changed] --- ジオメトリ保存フェーズ ---
+[DEBUG save_model_geometry] current_model_index=0
+[DEBUG save_model_geometry] project=プロジェクト1
+[DEBUG save_model_geometry] model=モデル1
+[DEBUG save_model_geometry] モデル 'モデル1' のジオメトリを保存: x=2357, y=580, w=658, h=1303
+[DEBUG save_model_geometry] 保存確認: x=2357, y=580, w=658, h=1303
+[DEBUG on_model_changed] save_settings()を呼び出します
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2357, y=580, w=658, h=1303
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B': window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG on_model_changed] --- ダイアログ状態・ジオメトリ保存フェーズ ---
+[DEBUG on_model_changed] 共通ダイアログ ID=1 ('AnimaSourceRotate'): ジオメトリ保存 x=3887, y=568
+[DEBUG on_model_changed] 'AnimaSourceRotate' ID=1: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=2 ('AnimaVectorCalc'): ジオメトリ保存 x=4245, y=533
+[DEBUG on_model_changed] 'AnimaVectorCalc' ID=2: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=3 ('AnimaTargetRotate'): ジオメトリ保存 x=4714, y=564
+[DEBUG on_model_changed] 'AnimaTargetRotate' ID=3: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=5 ('Driver'): ジオメトリ保存 x=3867, y=257
+[DEBUG on_model_changed] 'Driver' ID=5: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=6 ('BONE'): ジオメトリ保存 x=4355, y=214
+[DEBUG on_model_changed] 'BONE' ID=6: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=7 ('RBF'): ジオメトリ保存 x=5183, y=511
+[DEBUG on_model_changed] 'RBF' ID=7: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=1 ('AnimaSourceRotate'): ジオメトリ保存 x=3887, y=568
+[DEBUG on_model_changed] 'AnimaSourceRotate' ID=1: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=2 ('AnimaVectorCalc'): ジオメトリ保存 x=4245, y=533
+[DEBUG on_model_changed] 'AnimaVectorCalc' ID=2: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=3 ('AnimaTargetRotate'): ジオメトリ保存 x=4714, y=564
+[DEBUG on_model_changed] 'AnimaTargetRotate' ID=3: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=5 ('Driver'): ジオメトリ保存 x=3867, y=257
+[DEBUG on_model_changed] 'Driver' ID=5: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=6 ('BONE'): ジオメトリ保存 x=4355, y=214
+[DEBUG on_model_changed] 'BONE' ID=6: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=7 ('AnimaRbfSolver'): ジオメトリ保存 x=5183, y=511
+[DEBUG on_model_changed] 'AnimaRbfSolver' ID=7: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=1 ('AnimaSourceRotate'): ジオメトリ保存 x=3887, y=568
+[DEBUG on_model_changed] 'AnimaSourceRotate' ID=1: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=2 ('AnimaVectorCalc'): ジオメトリ保存 x=4245, y=533
+[DEBUG on_model_changed] 'AnimaVectorCalc' ID=2: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=3 ('AnimaTargetRotate'): ジオメトリ保存 x=4714, y=564
+[DEBUG on_model_changed] 'AnimaTargetRotate' ID=3: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=5 ('Driver'): ジオメトリ保存 x=3867, y=257
+[DEBUG on_model_changed] 'Driver' ID=5: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=6 ('BONE'): ジオメトリ保存 x=4355, y=214
+[DEBUG on_model_changed] 'BONE' ID=6: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=7 ('RBF'): ジオメトリ保存 x=5183, y=511
+[DEBUG on_model_changed] 'RBF' ID=7: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] --- ダイアログクローズフェーズ ---
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2357, y=580, w=658, h=1303
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B': window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2357, y=580, w=658, h=1303
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B': window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2357, y=580, w=658, h=1303
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B': window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2357, y=580, w=658, h=1303
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B': window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2357, y=580, w=658, h=1303
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B': window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2357, y=580, w=658, h=1303
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B': window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG on_model_changed] ダイアログクローズ後にsave_settings()を呼び出します
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2357, y=580, w=658, h=1303
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B': window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG on_model_changed] --- インデックス更新 ---
+[DEBUG on_model_changed] current_model_indexを 0 から 1 に変更
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2357, y=580, w=658, h=1303
+[DEBUG save_settings] current_model_index=1
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1': window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B' ★現在選択中★: window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[load_common_filters_to_ui] 読み込み: 1個のフィルター
+[load_common_filters_to_ui] 内容: [{'text': 'leg', 'enabled': False, 'exclude': False, 'exact_token': False}]
+0個のノードが見つかりました
+Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+0個のノードが見つかりました
+[DEBUG on_model_changed] --- ジオメトリ復元フェーズ ---
+[DEBUG restore_model_geometry] current_model_index=1
+[DEBUG restore_model_geometry] project=プロジェクト1
+[DEBUG restore_model_geometry] model=Model_B
+[DEBUG restore_model_geometry] モデル 'Model_B' のジオメトリを復元: x=1822, y=506, w=800, h=1261
+[DEBUG moveEvent] ウィンドウ移動: x=1822, y=461, モデル='Model_B'
+[DEBUG resizeEvent] ウィンドウリサイズ: w=800, h=1261, モデル='Model_B')
+[DEBUG restore_model_geometry] setGeometry実行後の実際の位置: x=1822, y=506
+共通ダイアログを復元しました: ID=2, 位置 x=4104, y=722
+共通ダイアログを復元しました: ID=3, 位置 x=4568, y=745
+[DEBUG on_model_changed] ========== 完了 ==========
+[DEBUG on_model_changed] ========== 開始 ==========
+[DEBUG on_model_changed] 現在のインデックス=1, 新規インデックス=0
+[DEBUG on_model_changed] 現在のモデル名=Model_B
+[DEBUG on_model_changed] 新規モデル名=モデル1
+[DEBUG on_model_changed] --- ジオメトリ保存フェーズ ---
+[DEBUG save_model_geometry] current_model_index=1
+[DEBUG save_model_geometry] project=プロジェクト1
+[DEBUG save_model_geometry] model=Model_B
+[DEBUG save_model_geometry] モデル 'Model_B' のジオメトリを保存: x=1822, y=506, w=800, h=1261
+[DEBUG save_model_geometry] 保存確認: x=1822, y=506, w=800, h=1261
+[DEBUG on_model_changed] save_settings()を呼び出します
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=1822, y=506, w=800, h=1261
+[DEBUG save_settings] current_model_index=1
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1': window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B' ★現在選択中★: window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG on_model_changed] --- ダイアログ状態・ジオメトリ保存フェーズ ---
+[DEBUG on_model_changed] 共通ダイアログ ID=2 ('AnimaVectorCalc'): ジオメトリ保存 x=4104, y=722
+[DEBUG on_model_changed] 'AnimaVectorCalc' ID=2: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] 共通ダイアログ ID=3 ('AnimaTargetRotate'): ジオメトリ保存 x=4568, y=745
+[DEBUG on_model_changed] 'AnimaTargetRotate' ID=3: dialog_open=False, common_dialog_open=True
+[DEBUG on_model_changed] --- ダイアログクローズフェーズ ---
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=1822, y=506, w=800, h=1261
+[DEBUG save_settings] current_model_index=1
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1': window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B' ★現在選択中★: window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=1822, y=506, w=800, h=1261
+[DEBUG save_settings] current_model_index=1
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1': window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B' ★現在選択中★: window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG on_model_changed] ダイアログクローズ後にsave_settings()を呼び出します
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=1822, y=506, w=800, h=1261
+[DEBUG save_settings] current_model_index=1
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1': window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B' ★現在選択中★: window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG on_model_changed] --- インデックス更新 ---
+[DEBUG on_model_changed] current_model_indexを 1 から 0 に変更
+[DEBUG resizeEvent] ウィンドウリサイズ: w=800, h=1299, モデル='モデル1')
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=1822, y=506, w=800, h=1299
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2357, y=580, w=658, h=1303)
+[DEBUG save_settings]   モデル[1] 'Model_B': window_geometry有 (x=1822, y=506, w=800, h=1261)
+[DEBUG save_settings]   モデル[2] 'Model_C': window_geometry有 (x=1822, y=506, w=800, h=1230)
 Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
 [load_common_filters_to_ui] 読み込み: 4個のフィルター
-[load_common_filters_to_ui] 内容: [{'text': 'HAND', 'enabled': True, 'exclude': False, 'exact_token': False}, {'text': 'HLP', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': 'TWIST', 'enabled': True, 'exclude': True, 'exact_token': False}, {'text': 'R', 'enabled': True, 'exclude': False, 'exact_token': True}]
-
-[DEBUG] switch_to_phrase_preset: index=0
-[DEBUG] phrase_presets の数: 7
-[DEBUG] 切り替え先プリセット: AnimaSourceRotate
-[DEBUG] 切り替え先プリセットのID: 6
-[DEBUG] current_phrase_preset_index を 0 に更新しました
-[DEBUG] load_phrase_preset_to_ui を呼び出します
-[DEBUG] load_phrase_preset_to_ui: index=0
-[DEBUG] プリセット名: AnimaSourceRotate
-[DEBUG] _is_loading = True をセット
-[DEBUG] 復元するフレーズ数: 3
-[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
-[DEBUG] 保存前のプリセットID: 6
-[DEBUG] UI上のID入力値: '5'
-[DEBUG] 保存後のプリセットID: 5
+[load_common_filters_to_ui] 内容: [{'text': 'FOREARM', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': 'SUB', 'enabled': True, 'exclude': False, 'exact_token': False}, {'text': 'R', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': '0', 'enabled': True, 'exclude': False, 'exact_token': True}]
 3個のノードが見つかりました
-[DEBUG] save_settings: _is_loading=True のため状態保存をスキップ
 Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
-[DEBUG] 復元するID (変換前): '5'
-[DEBUG] 最終的なID: '5'
-[DEBUG] preset_id_input.setText('5') を呼び出します
-[DEBUG] setText 成功（シグナルブロック使用）
-[DEBUG] on_refresh を呼び出します
 3個のノードが見つかりました
-[DEBUG] _is_loading = False をセット
-[DEBUG] load_phrase_preset_to_ui 完了
-[DEBUG] switch_to_phrase_preset 完了
-
-
-[DEBUG] switch_to_phrase_preset: index=1
-[DEBUG] phrase_presets の数: 7
-[DEBUG] 切り替え先プリセット: AnimaVectorCalc
-[DEBUG] 切り替え先プリセットのID: 6
-[DEBUG] 現在のプリセット (index=0) の状態を保存します
-[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
-[DEBUG] 保存前のプリセットID: 5
-[DEBUG] UI上のID入力値: '5'
-[DEBUG] 保存後のプリセットID: 5
-[DEBUG] current_phrase_preset_index を 1 に更新しました
-[DEBUG] load_phrase_preset_to_ui を呼び出します
-[DEBUG] load_phrase_preset_to_ui: index=1
-[DEBUG] プリセット名: AnimaVectorCalc
-[DEBUG] _is_loading = True をセット
-[DEBUG] 復元するフレーズ数: 2
-[DEBUG] save_current_phrase_preset_state: index=1, name=AnimaVectorCalc
-[DEBUG] 保存前のプリセットID: 6
-[DEBUG] UI上のID入力値: '5'
-[DEBUG] 保存後のプリセットID: 5
-3個のノードが見つかりました
-[DEBUG] save_settings: _is_loading=True のため状態保存をスキップ
-Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
-[DEBUG] 復元するID (変換前): '5'
-[DEBUG] 最終的なID: '5'
-[DEBUG] preset_id_input.setText('5') を呼び出します
-[DEBUG] setText 成功（シグナルブロック使用）
-[DEBUG] on_refresh を呼び出します
-3個のノードが見つかりました
-[DEBUG] _is_loading = False をセット
-[DEBUG] load_phrase_preset_to_ui 完了
-[DEBUG] switch_to_phrase_preset 完了
-
-
-[DEBUG] switch_to_phrase_preset: index=2
-[DEBUG] phrase_presets の数: 7
-[DEBUG] 切り替え先プリセット: AnimaTargetRotate
-[DEBUG] 切り替え先プリセットのID: 3
-[DEBUG] 現在のプリセット (index=1) の状態を保存します
-[DEBUG] save_current_phrase_preset_state: index=1, name=AnimaVectorCalc
-[DEBUG] 保存前のプリセットID: 5
-[DEBUG] UI上のID入力値: '5'
-[DEBUG] 保存後のプリセットID: 5
-[DEBUG] current_phrase_preset_index を 2 に更新しました
-[DEBUG] load_phrase_preset_to_ui を呼び出します
-[DEBUG] load_phrase_preset_to_ui: index=2
-[DEBUG] プリセット名: AnimaTargetRotate
-[DEBUG] _is_loading = True をセット
-[DEBUG] 復元するフレーズ数: 2
-[DEBUG] 復元するID (変換前): '3'
-[DEBUG] 最終的なID: '3'
-[DEBUG] preset_id_input.setText('3') を呼び出します
-[DEBUG] setText 成功（シグナルブロック使用）
-[DEBUG] on_refresh を呼び出します
-3個のノードが見つかりました
-[DEBUG] _is_loading = False をセット
-[DEBUG] load_phrase_preset_to_ui 完了
-[DEBUG] switch_to_phrase_preset 完了
-
-
-[DEBUG] switch_to_phrase_preset: index=0
-[DEBUG] phrase_presets の数: 7
-[DEBUG] 切り替え先プリセット: AnimaSourceRotate
-[DEBUG] 切り替え先プリセットのID: 5
-[DEBUG] 現在のプリセット (index=2) の状態を保存します
-[DEBUG] save_current_phrase_preset_state: index=2, name=AnimaTargetRotate
-[DEBUG] 保存前のプリセットID: 3
-[DEBUG] UI上のID入力値: '3'
-[DEBUG] 保存後のプリセットID: 3
-[DEBUG] current_phrase_preset_index を 0 に更新しました
-[DEBUG] load_phrase_preset_to_ui を呼び出します
-[DEBUG] load_phrase_preset_to_ui: index=0
-[DEBUG] プリセット名: AnimaSourceRotate
-[DEBUG] _is_loading = True をセット
-[DEBUG] 復元するフレーズ数: 3
-[DEBUG] save_current_phrase_preset_state: index=0, name=AnimaSourceRotate
-[DEBUG] 保存前のプリセットID: 5
-[DEBUG] UI上のID入力値: '3'
-[DEBUG] 保存後のプリセットID: 3
-3個のノードが見つかりました
-[DEBUG] save_settings: _is_loading=True のため状態保存をスキップ
-Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
-[DEBUG] 復元するID (変換前): '3'
-[DEBUG] 最終的なID: '3'
-[DEBUG] preset_id_input.setText('3') を呼び出します
-[DEBUG] setText 成功（シグナルブロック使用）
-[DEBUG] on_refresh を呼び出します
-3個のノードが見つかりました
-[DEBUG] _is_loading = False をセット
-[DEBUG] load_phrase_preset_to_ui 完了
-[DEBUG] switch_to_phrase_preset 完了
+[DEBUG on_model_changed] --- ジオメトリ復元フェーズ ---
+[DEBUG restore_model_geometry] current_model_index=0
+[DEBUG restore_model_geometry] project=プロジェクト1
+[DEBUG restore_model_geometry] model=モデル1
+[DEBUG restore_model_geometry] モデル 'モデル1' のジオメトリを復元: x=2357, y=580, w=658, h=1303
+[DEBUG moveEvent] ウィンドウ移動: x=2357, y=535, モデル='モデル1'
+[DEBUG resizeEvent] ウィンドウリサイズ: w=658, h=1303, モデル='モデル1')
+[DEBUG restore_model_geometry] setGeometry実行後の実際の位置: x=2357, y=580
+共通ダイアログを復元しました: ID=1, 位置 x=3887, y=568
+共通ダイアログを復元しました: ID=2, 位置 x=4104, y=722
+共通ダイアログを復元しました: ID=3, 位置 x=4568, y=745
+共通ダイアログを復元しました: ID=5, 位置 x=3867, y=257
+共通ダイアログを復元しました: ID=6, 位置 x=4355, y=214
+共通ダイアログを復元しました: ID=7, 位置 x=5183, y=511
+[DEBUG on_model_changed] ========== 完了 ==========
