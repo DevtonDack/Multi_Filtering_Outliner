@@ -25,6 +25,31 @@ class HierarchyManagerMixin:
             return project['models'][self.current_model_index]
         return None
 
+    # ========== Default Factory ==========
+
+    def _create_default_work_preset(self, name='作業1'):
+        """空の作業プリセットのデフォルト構造を生成"""
+        return {
+            'name': name,
+            'common_filters': [{'text': '', 'enabled': True, 'exclude': False, 'exact_token': False}],
+            'phrase_presets': [
+                {
+                    'name': 'フレーズ1',
+                    'phrase_data': [{'text': '', 'enabled': True, 'exclude': False, 'exact_token': False}],
+                    'match_mode': 'any',
+                    'dag_only': False,
+                    'use_common_filter': True
+                }
+            ]
+        }
+
+    def _create_default_model(self, name='モデル1'):
+        """デフォルトの作業プリセットを1つ含む空のモデル構造を生成"""
+        return {
+            'name': name,
+            'works': [self._create_default_work_preset()]
+        }
+
     # ========== Project CRUD Operations ==========
 
     def on_add_project(self):
@@ -36,10 +61,10 @@ class HierarchyManagerMixin:
         if not ok or not project_name:
             return
 
-        # 新しいプロジェクトを作成
+        # 新しいプロジェクトを作成（デフォルトのモデル+空の作業プリセットを1つ含む）
         new_project = {
             'name': project_name,
-            'models': []
+            'models': [self._create_default_model()]
         }
 
         self.projects.append(new_project)
@@ -129,10 +154,10 @@ class HierarchyManagerMixin:
         if not ok or not model_name:
             return
 
-        # 新しいモデルを作成
+        # 新しいモデルを作成（デフォルトで空の作業プリセットを1つ含む）
         new_model = {
             'name': model_name,
-            'works': []
+            'works': [self._create_default_work_preset()]
         }
 
         if 'models' not in project:

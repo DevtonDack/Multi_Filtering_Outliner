@@ -161,8 +161,7 @@ class SettingsManagerMixin:
             if self.current_model_index < 0:
                 self.current_model_index = settings.get('current_model_index', -1)
 
-            # 前回開いていたダイアログを復元
-            self.restore_dialogs()
+            # ダイアログの復元は __init__ の最後で実行される
 
         except Exception as e:
             print(f"Multi Filtering Outliner: 設定の読み込みに失敗: {e}")

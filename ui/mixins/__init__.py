@@ -10,6 +10,10 @@ from .work_preset_manager import WorkPresetManagerMixin
 from .phrase_preset_manager import PhrasePresetManagerMixin
 from .filter_manager import FilterManagerMixin
 from .node_list_manager import NodeListManagerMixin
+from .preset_id_manager import PresetIDManagerMixin
+from .dialog_interaction import DialogInteractionMixin
+from .preset_import_export import PresetImportExportMixin
+from .preset_migration import PresetMigrationMixin
 
 __all__ = [
     'GeometryManagerMixin',
@@ -19,5 +23,9 @@ __all__ = [
     'WorkPresetManagerMixin',
     'PhrasePresetManagerMixin',
     'FilterManagerMixin',
-    'NodeListManagerMixin'
+    'NodeListManagerMixin',
+    'PresetIDManagerMixin',
+    'DialogInteractionMixin',
+    'PresetImportExportMixin',
+    'PresetMigrationMixin'
 ]

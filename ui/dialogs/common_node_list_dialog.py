@@ -116,13 +116,18 @@ class CommonNodeListDialog(QtWidgets.QDialog):
         # フレーズ設定を収集
         from tools import multi_filtering_outliner as nf
 
-        # 共通フィルターを取得
+        # 共通フィルターを取得（有効かつテキストが空でないもののみ）
         common_include_configs = []
         common_exclude_configs = []
         if phrase_preset.get('use_common_filter', True) and work:
             for common_phrase in work.get('common_filters', []):
+                if not isinstance(common_phrase, dict) or not common_phrase.get('enabled', True):
+                    continue
+                text = common_phrase.get('text', '').strip()
+                if not text:
+                    continue
                 config = {
-                    'text': common_phrase['text'],
+                    'text': text,
                     'exact_token': common_phrase.get('exact_token', False)
                 }
                 if common_phrase.get('exclude', False):
@@ -130,14 +135,17 @@ class CommonNodeListDialog(QtWidgets.QDialog):
                 else:
                     common_include_configs.append(config)
 
-        # フレーズプリセットのフィルターを取得
+        # フレーズプリセットのフィルターを取得（有効かつテキストが空でないもののみ）
         include_configs = []
         exclude_configs = []
         for phrase in phrase_preset.get('phrase_data', []):
-            if not phrase.get('enabled', True):
+            if not isinstance(phrase, dict) or not phrase.get('enabled', True):
+                continue
+            text = phrase.get('text', '').strip()
+            if not text:
                 continue
             config = {
-                'text': phrase['text'],
+                'text': text,
                 'exact_token': phrase.get('exact_token', False)
             }
             if phrase.get('exclude', False):

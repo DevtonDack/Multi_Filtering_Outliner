@@ -9,6 +9,37 @@ from ui.dialogs import NodeListDialog, CommonNodeListDialog
 class DialogManagerMixin:
     """ダイアログの管理を行うMixin"""
 
+    def clamp_to_screen(self, x, y, width, height):
+        """ダイアログの位置を画面内に収める"""
+        try:
+            from PySide6 import QtWidgets, QtGui
+
+            # 利用可能なすべてのスクリーンを取得
+            app = QtWidgets.QApplication.instance()
+            screens = app.screens()
+
+            # 少なくとも1つのスクリーンに一部が表示されるかチェック
+            for screen in screens:
+                screen_geometry = screen.availableGeometry()
+                # ウィンドウの右下が画面内にあるか、または画面の左上がウィンドウ内にあるかチェック
+                if (screen_geometry.x() <= x + width and
+                    screen_geometry.y() <= y + height and
+                    screen_geometry.x() + screen_geometry.width() >= x and
+                    screen_geometry.y() + screen_geometry.height() >= y):
+                    # 画面内に一部が表示されている
+                    return x, y
+
+            # どの画面にも表示されていない場合、プライマリスクリーンの中央に配置
+            primary_screen = app.primaryScreen()
+            screen_geometry = primary_screen.availableGeometry()
+            x = screen_geometry.x() + (screen_geometry.width() - width) // 2
+            y = screen_geometry.y() + (screen_geometry.height() - height) // 2
+            print(f"[clamp_to_screen] 画面外の位置を補正: プライマリスクリーン中央に配置 x={x}, y={y}")
+            return x, y
+        except Exception as e:
+            print(f"[clamp_to_screen] エラー: {e}")
+            return x, y
+
     def close_all_dialogs(self):
         """すべてのダイアログを閉じる（フラグは保持）"""
         # 専用ダイアログを閉じる
@@ -30,8 +61,10 @@ class DialogManagerMixin:
 
     def restore_model_dialogs(self):
         """現在のモデルプリセットのダイアログを復元"""
+        print(f"[DEBUG restore_model_dialogs] 開始 (current_model_index={self.current_model_index})")
 
         if self.current_model_index < 0:
+            print(f"[DEBUG restore_model_dialogs] current_model_indexが無効({self.current_model_index})のため終了")
             return
 
         project = self.get_current_project()
@@ -132,8 +165,10 @@ class DialogManagerMixin:
                     # ジオメトリを復元
                     if 'dialog_geometry' in phrase_preset:
                         geometry = phrase_preset['dialog_geometry']
-                        dialog.setGeometry(geometry['x'], geometry['y'], geometry['width'], geometry['height'])
-                        print(f"専用ダイアログを復元しました: {dialog_title}, 位置 x={geometry['x']}, y={geometry['y']}")
+                        # 画面境界チェック
+                        x, y = self.clamp_to_screen(geometry['x'], geometry['y'], geometry['width'], geometry['height'])
+                        dialog.setGeometry(x, y, geometry['width'], geometry['height'])
+                        print(f"専用ダイアログを復元しました: {dialog_title}, 位置 x={x}, y={y}")
                     else:
                         print(f"専用ダイアログを復元しました: {dialog_title} (ジオメトリなし)")
 
@@ -163,15 +198,19 @@ class DialogManagerMixin:
                     # ジオメトリを復元（このモデルのフレーズプリセットのジオメトリを使用）
                     if 'common_dialog_geometry' in phrase_preset:
                         geometry = phrase_preset['common_dialog_geometry']
-                        dialog.setGeometry(geometry['x'], geometry['y'], geometry['width'], geometry['height'])
-                        print(f"共通ダイアログのジオメトリを復元: ID={unique_id}, 位置 x={geometry['x']}, y={geometry['y']}")
+                        # 画面境界チェック
+                        x, y = self.clamp_to_screen(geometry['x'], geometry['y'], geometry['width'], geometry['height'])
+                        dialog.setGeometry(x, y, geometry['width'], geometry['height'])
+                        print(f"共通ダイアログのジオメトリを復元: ID={unique_id}, 位置 x={x}, y={y}")
                     else:
                         print(f"共通ダイアログのジオメトリなし: ID={unique_id}")
 
     def restore_dialogs(self):
         """前回開いていたダイアログを復元（初回起動時用）"""
+        print(f"[DEBUG restore_dialogs] ダイアログ復元開始 (current_model_index={self.current_model_index})")
         # 現在のモデルプリセットのダイアログのみを復元
         self.restore_model_dialogs()
+        print(f"[DEBUG restore_dialogs] ダイアログ復元完了")
 
     def refresh_common_dialogs(self):
         """開いている共通ダイアログをすべて更新"""
