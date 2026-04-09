@@ -80,6 +80,7 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         self.current_nodes = []  # 現在表示中のノードリスト
         self.node_dialogs = {}  # プリセットごとのノードリストダイアログ {list_name: dialog}
         self.common_dialogs = {}  # 共通ダイアログ {unique_id: dialog}
+        self.integrated_dialogs = {}  # 統合ダイアログ {(project_index, model_index): dialog}
         self.last_import_path = ""  # 最後に使用した読み込みパス
         self.last_export_path = ""  # 最後に使用した書き出しパス
         self.create_ui()
@@ -295,10 +296,15 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         common_filter_scroll.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         self.common_filter_container = QtWidgets.QWidget()
-        self.common_filter_container_layout = QtWidgets.QVBoxLayout(self.common_filter_container)
+        # 2 列グリッドで配置（作業プリセットのフレーズ指定欄）
+        self.common_filter_container_layout = QtWidgets.QGridLayout(self.common_filter_container)
         self.common_filter_container_layout.setSpacing(3)
         self.common_filter_container_layout.setContentsMargins(0, 0, 0, 0)
         self.common_filter_container_layout.setAlignment(QtCore.Qt.AlignTop)
+        self.common_filter_container_layout.setColumnStretch(0, 1)
+        self.common_filter_container_layout.setColumnStretch(1, 1)
+        # 1 行あたりの列数
+        self.common_filter_columns = 2
 
         common_filter_scroll.setWidget(self.common_filter_container)
         common_filter_layout.addWidget(common_filter_scroll)
@@ -468,10 +474,15 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         phrase_scroll.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         self.phrase_container = QtWidgets.QWidget()
-        self.phrase_container_layout = QtWidgets.QVBoxLayout(self.phrase_container)
+        # 2 列グリッドで配置
+        self.phrase_container_layout = QtWidgets.QGridLayout(self.phrase_container)
         self.phrase_container_layout.setSpacing(3)
         self.phrase_container_layout.setContentsMargins(0, 0, 0, 0)
         self.phrase_container_layout.setAlignment(QtCore.Qt.AlignTop)
+        self.phrase_container_layout.setColumnStretch(0, 1)
+        self.phrase_container_layout.setColumnStretch(1, 1)
+        # 1 行あたりの列数（将来変更しやすいよう定数化）
+        self.phrase_columns = 2
 
         phrase_scroll.setWidget(self.phrase_container)
         phrase_layout.addWidget(phrase_scroll)
@@ -542,6 +553,12 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         common_dialog_btn.setStyleSheet("background-color: rgb(153, 102, 179);")
         common_dialog_btn.clicked.connect(self.on_open_common_dialog)
         action_buttons_layout.addWidget(common_dialog_btn)
+
+        integrated_dialog_btn = QtWidgets.QPushButton("統合ダイアログで開く")
+        integrated_dialog_btn.setMinimumHeight(30)
+        integrated_dialog_btn.setStyleSheet("background-color: rgb(102, 140, 200);")
+        integrated_dialog_btn.clicked.connect(self.open_integrated_dialog)
+        action_buttons_layout.addWidget(integrated_dialog_btn)
 
         phrase_preset_content_layout.addLayout(action_buttons_layout)
 
@@ -618,6 +635,23 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
                 dialog._closing_from_main = True
                 dialog.update_timer.stop()
                 dialog.close()
+
+        # すべての統合ダイアログを閉じる（分割構成とジオメトリを保存してから）
+        integrated_to_close = list(self.integrated_dialogs.values())
+        for dialog in integrated_to_close:
+            try:
+                if dialog.isVisible():
+                    dialog._closing_from_main = True
+                    if hasattr(dialog, 'update_timer'):
+                        dialog.update_timer.stop()
+                    try:
+                        dialog.save_layout_to_data()
+                    except Exception as e:
+                        print(f"[closeEvent] 統合ダイアログ保存失敗: {e}")
+                    dialog.close()
+            except RuntimeError:
+                pass
+        self.integrated_dialogs.clear()
 
         # 設定を保存
         print(f"[DEBUG closeEvent] 最終的なsave_settings()を呼び出します")

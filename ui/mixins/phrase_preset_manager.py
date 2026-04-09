@@ -187,8 +187,34 @@ class PhrasePresetManagerMixin:
 
     # ========== Phrase Management (UI) ==========
 
+    def _get_phrase_columns(self):
+        """1 行あたりのフレーズ列数（デフォルト 2）"""
+        return getattr(self, 'phrase_columns', 2)
+
+    def _collect_phrase_widgets(self):
+        """phrase_container_layout に現在存在するフレーズウィジェットを
+        挿入順(= グリッドの row-major 順)で返す。"""
+        widgets = []
+        for i in range(self.phrase_container_layout.count()):
+            item = self.phrase_container_layout.itemAt(i)
+            if item and item.widget() and isinstance(item.widget(), DraggablePhraseWidget):
+                widgets.append(item.widget())
+        return widgets
+
+    def _repack_phrase_widgets(self, widgets=None):
+        """フレーズウィジェットを 2 列グリッドへ再配置する。
+        widgets を指定しない場合は現在レイアウト内のものを使用。"""
+        if widgets is None:
+            widgets = self._collect_phrase_widgets()
+        # いったんレイアウトから外す
+        for w in widgets:
+            self.phrase_container_layout.removeWidget(w)
+        cols = self._get_phrase_columns()
+        for i, w in enumerate(widgets):
+            self.phrase_container_layout.addWidget(w, i // cols, i % cols)
+
     def add_phrase_row(self, text='', enabled=True, exclude=False, exact_token=False):
-        """フレーズ入力行を追加"""
+        """フレーズ入力行を追加（2 列グリッドへ row-major で配置）"""
         phrase_widget = DraggablePhraseWidget(text, enabled, exclude, exact_token, self.phrase_container)
         phrase_widget.phrase_input.textChanged.connect(self.on_filter_changed)
         phrase_widget.enabled_check.stateChanged.connect(self.on_filter_changed)
@@ -196,7 +222,9 @@ class PhrasePresetManagerMixin:
         phrase_widget.exact_token_check.stateChanged.connect(self.on_filter_changed)
         phrase_widget.remove_btn.clicked.connect(lambda: self.on_remove_phrase(phrase_widget))
 
-        self.phrase_container_layout.addWidget(phrase_widget)
+        cols = self._get_phrase_columns()
+        count = self.phrase_container_layout.count()
+        self.phrase_container_layout.addWidget(phrase_widget, count // cols, count % cols)
 
     def on_add_phrase(self):
         """フレーズ入力を追加"""
@@ -210,9 +238,10 @@ class PhrasePresetManagerMixin:
             # 最低1つは残す
             return
 
-        # ウィジェットを削除
+        # ウィジェットを削除してからグリッドを詰める
         self.phrase_container_layout.removeWidget(phrase_widget)
         phrase_widget.deleteLater()
+        self._repack_phrase_widgets()
 
         # リストを更新
         self.on_filter_changed()
@@ -220,21 +249,22 @@ class PhrasePresetManagerMixin:
     def on_remove_last_phrase(self):
         """最後のフレーズ入力を削除"""
         if self.phrase_container_layout.count() > 1:
-            last_item = self.phrase_container_layout.itemAt(self.phrase_container_layout.count() - 1)
-            if last_item and last_item.widget():
-                self.on_remove_phrase(last_item.widget())
+            widgets = self._collect_phrase_widgets()
+            if widgets:
+                self.on_remove_phrase(widgets[-1])
 
     def swap_phrase_rows(self, source_widget, target_widget):
-        """フレーズ行を入れ替え"""
-        source_index = self.phrase_container_layout.indexOf(source_widget)
-        target_index = self.phrase_container_layout.indexOf(target_widget)
-
-        if source_index == -1 or target_index == -1:
+        """フレーズ行を入れ替え（2 列グリッド対応）"""
+        widgets = self._collect_phrase_widgets()
+        try:
+            s = widgets.index(source_widget)
+            t = widgets.index(target_widget)
+        except ValueError:
             return
-
-        # ウィジェットを入れ替え
-        self.phrase_container_layout.removeWidget(source_widget)
-        self.phrase_container_layout.insertWidget(target_index, source_widget)
+        if s == t:
+            return
+        widgets[s], widgets[t] = widgets[t], widgets[s]
+        self._repack_phrase_widgets(widgets)
 
         # リストを更新
         self.on_filter_changed()

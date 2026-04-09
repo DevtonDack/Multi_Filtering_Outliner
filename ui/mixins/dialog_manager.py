@@ -3,7 +3,7 @@ DialogManagerMixin - ダイアログの開閉・復元管理
 """
 
 from tools import multi_filtering_outliner
-from ui.dialogs import NodeListDialog, CommonNodeListDialog
+from ui.dialogs import NodeListDialog, CommonNodeListDialog, IntegratedNodeListDialog
 
 
 class DialogManagerMixin:
@@ -58,6 +58,90 @@ class DialogManagerMixin:
                 dialog.update_timer.stop()
                 dialog.close()
         self.common_dialogs.clear()
+
+        # 統合ダイアログを閉じる（状態は model['integrated_dialog'] に保持）
+        if hasattr(self, 'integrated_dialogs'):
+            integrated_to_close = list(self.integrated_dialogs.values())
+            for dialog in integrated_to_close:
+                if dialog.isVisible():
+                    dialog._closing_from_main = True
+                    if hasattr(dialog, 'update_timer'):
+                        dialog.update_timer.stop()
+                    # 閉じる前に分割構成とジオメトリを保存
+                    try:
+                        dialog.save_layout_to_data()
+                    except Exception as e:
+                        print(f"[close_all_dialogs] 統合ダイアログ保存失敗: {e}")
+                    dialog.close()
+            self.integrated_dialogs.clear()
+
+    # ========== 統合ダイアログ ==========
+
+    def open_integrated_dialog(self):
+        """現在のモデルに対応する統合ダイアログを開く"""
+        if self.current_project_index < 0 or self.current_model_index < 0:
+            return None
+        if not hasattr(self, 'integrated_dialogs'):
+            self.integrated_dialogs = {}
+
+        key = (self.current_project_index, self.current_model_index)
+        dialog = self.integrated_dialogs.get(key)
+        if dialog is not None:
+            try:
+                dialog.windowTitle()  # 有効性チェック
+                if not dialog.isVisible():
+                    dialog.show()
+                dialog.raise_()
+                dialog.activateWindow()
+                return dialog
+            except RuntimeError:
+                del self.integrated_dialogs[key]
+
+        dialog = IntegratedNodeListDialog(
+            project_index=self.current_project_index,
+            model_index=self.current_model_index,
+            parent_widget=self,
+            parent=self,
+        )
+        self.integrated_dialogs[key] = dialog
+
+        # model データ上の open フラグを True にする
+        model = self.get_current_model()
+        if model is not None:
+            data = model.get('integrated_dialog')
+            if not isinstance(data, dict):
+                data = {'open': True, 'rows': [{'cells': [{'unique_id': ''}]}]}
+                model['integrated_dialog'] = data
+            else:
+                data['open'] = True
+
+        dialog.restore_geometry()
+        dialog.show()
+        dialog.raise_()
+        dialog.activateWindow()
+        self.save_settings()
+        return dialog
+
+    def refresh_integrated_dialogs(self):
+        """開いている統合ダイアログを更新（作業プリセット切替時などから呼ぶ）"""
+        if not hasattr(self, 'integrated_dialogs'):
+            return
+        for dialog in list(self.integrated_dialogs.values()):
+            try:
+                if dialog.isVisible():
+                    dialog.on_refresh()
+            except RuntimeError:
+                pass
+
+    def save_integrated_dialog_states(self):
+        """モデル切替前などに現在の統合ダイアログの構成/ジオメトリを保存"""
+        if not hasattr(self, 'integrated_dialogs'):
+            return
+        for dialog in self.integrated_dialogs.values():
+            try:
+                dialog.save_layout_to_data()
+            except RuntimeError:
+                pass
 
     def restore_model_dialogs(self):
         """現在のモデルプリセットのダイアログを復元"""
@@ -204,6 +288,27 @@ class DialogManagerMixin:
                         print(f"共通ダイアログのジオメトリを復元: ID={unique_id}, 位置 x={x}, y={y}")
                     else:
                         print(f"共通ダイアログのジオメトリなし: ID={unique_id}")
+
+        # 統合ダイアログの復元
+        integrated_data = model.get('integrated_dialog')
+        if isinstance(integrated_data, dict) and integrated_data.get('open', False):
+            if not hasattr(self, 'integrated_dialogs'):
+                self.integrated_dialogs = {}
+            key = (self.current_project_index, self.current_model_index)
+            if key not in self.integrated_dialogs:
+                try:
+                    dialog = IntegratedNodeListDialog(
+                        project_index=self.current_project_index,
+                        model_index=self.current_model_index,
+                        parent_widget=self,
+                        parent=self,
+                    )
+                    self.integrated_dialogs[key] = dialog
+                    dialog.restore_geometry()
+                    dialog.show()
+                    print(f"統合ダイアログを復元しました: model={model.get('name')}")
+                except Exception as e:
+                    print(f"[restore_model_dialogs] 統合ダイアログ復元失敗: {e}")
 
     def restore_dialogs(self):
         """前回開いていたダイアログを復元（初回起動時用）"""

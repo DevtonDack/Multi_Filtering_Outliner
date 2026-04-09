@@ -133,6 +133,10 @@ class WorkPresetManagerMixin:
         # 共通ダイアログを更新
         self.refresh_common_dialogs()
 
+        # 統合ダイアログを更新（作業プリセット切替時はリスト内容のみ更新）
+        if hasattr(self, 'refresh_integrated_dialogs'):
+            self.refresh_integrated_dialogs()
+
     # ========== Work Preset State Management ==========
 
     def save_current_work_state(self):

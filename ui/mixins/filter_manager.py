@@ -75,8 +75,29 @@ class FilterManagerMixin:
 
         work['common_filters'] = common_filters if common_filters else [{'text': '', 'enabled': True, 'exclude': False, 'exact_token': False}]
 
+    def _get_common_filter_columns(self):
+        """1 行あたりの共通フィルター列数（デフォルト 2）"""
+        return getattr(self, 'common_filter_columns', 2)
+
+    def _collect_common_filter_widgets(self):
+        widgets = []
+        for i in range(self.common_filter_container_layout.count()):
+            item = self.common_filter_container_layout.itemAt(i)
+            if item and item.widget() and isinstance(item.widget(), DraggablePhraseWidget):
+                widgets.append(item.widget())
+        return widgets
+
+    def _repack_common_filter_widgets(self, widgets=None):
+        if widgets is None:
+            widgets = self._collect_common_filter_widgets()
+        for w in widgets:
+            self.common_filter_container_layout.removeWidget(w)
+        cols = self._get_common_filter_columns()
+        for i, w in enumerate(widgets):
+            self.common_filter_container_layout.addWidget(w, i // cols, i % cols)
+
     def add_common_filter_row(self, text='', enabled=True, exclude=False, exact_token=False):
-        """共通フィルター入力行を追加"""
+        """共通フィルター入力行を追加（2 列グリッド）"""
         filter_widget = DraggablePhraseWidget(text, enabled, exclude, exact_token, self.common_filter_container)
         filter_widget.phrase_input.textChanged.connect(self.on_common_filter_changed)
         filter_widget.enabled_check.stateChanged.connect(self.on_common_filter_changed)
@@ -84,7 +105,9 @@ class FilterManagerMixin:
         filter_widget.exact_token_check.stateChanged.connect(self.on_common_filter_changed)
         filter_widget.remove_btn.clicked.connect(lambda: self.on_remove_common_filter(filter_widget))
 
-        self.common_filter_container_layout.addWidget(filter_widget)
+        cols = self._get_common_filter_columns()
+        count = self.common_filter_container_layout.count()
+        self.common_filter_container_layout.addWidget(filter_widget, count // cols, count % cols)
 
     def on_add_common_filter(self):
         """共通フィルター入力を追加"""
@@ -99,9 +122,10 @@ class FilterManagerMixin:
             # 最低1つは残す
             return
 
-        # ウィジェットを削除
+        # ウィジェットを削除してからグリッドを詰める
         self.common_filter_container_layout.removeWidget(filter_widget)
         filter_widget.deleteLater()
+        self._repack_common_filter_widgets()
 
         # フィルターを更新
         self.on_common_filter_changed()
@@ -109,9 +133,9 @@ class FilterManagerMixin:
     def on_remove_last_common_filter(self):
         """最後の共通フィルター入力を削除"""
         if self.common_filter_container_layout.count() > 1:
-            last_item = self.common_filter_container_layout.itemAt(self.common_filter_container_layout.count() - 1)
-            if last_item and last_item.widget():
-                self.on_remove_common_filter(last_item.widget())
+            widgets = self._collect_common_filter_widgets()
+            if widgets:
+                self.on_remove_common_filter(widgets[-1])
 
     def on_common_filter_changed(self):
         """共通フィルターが変更された時"""
