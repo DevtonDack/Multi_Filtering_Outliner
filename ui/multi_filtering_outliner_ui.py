@@ -14,6 +14,7 @@ from ui.mixins import (GeometryManagerMixin, SettingsManagerMixin,
                        FilterManagerMixin, NodeListManagerMixin,
                        PresetIDManagerMixin, DialogInteractionMixin,
                        PresetImportExportMixin, PresetMigrationMixin)
+from ui.mixins.dpi_scale import DpiScaleMixin
 from ui.widgets import FlowLayout, EditableButton, DraggablePhraseWidget
 from ui.dialogs import PresetImportDialog, NodeListDialog, CommonNodeListDialog
 import sys
@@ -27,7 +28,8 @@ SETTINGS_FILE = os.path.join(SETTINGS_DIR, "multi_filtering_outliner_settings.js
 _global_instance = None
 
 
-class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin,
+class MultiFilteringOutlinerWidget(DpiScaleMixin, HierarchyManagerMixin,
+                                   WorkPresetManagerMixin,
                                    PhrasePresetManagerMixin, FilterManagerMixin,
                                    NodeListManagerMixin, PresetIDManagerMixin,
                                    DialogInteractionMixin, PresetImportExportMixin,
@@ -51,6 +53,7 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
                 pass
 
         super(MultiFilteringOutlinerWidget, self).__init__(parent)
+        self._init_dpi_scale()
 
         # 固定のオブジェクト名を設定（シングルトン識別用）
         self.setObjectName(self.WINDOW_OBJECT_NAME)
@@ -97,18 +100,20 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
 
     def create_ui(self):
         """UIを作成"""
+        s = self._ui_scale
         main_layout = QtWidgets.QVBoxLayout(self)
-        main_layout.setContentsMargins(5, 5, 5, 5)
-        main_layout.setSpacing(10)
+        m5 = self._s(5)
+        main_layout.setContentsMargins(m5, m5, m5, m5)
+        main_layout.setSpacing(self._s(10))
 
         # タイトル
         title = QtWidgets.QLabel("Node Filter")
         title.setAlignment(QtCore.Qt.AlignCenter)
-        title.setStyleSheet("background-color: rgb(76, 76, 89); padding: 5px;")
+        title.setStyleSheet(f"background-color: rgb(76, 76, 89); padding: {m5}px;")
         title.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         font = title.font()
         font.setBold(True)
-        font.setPointSize(10)
+        font.setPointSizeF(self._spt(10))
         title.setFont(font)
         main_layout.addWidget(title, 0)  # ストレッチファクター0（固定）
 
@@ -120,26 +125,29 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         self.project_combo.currentIndexChanged.connect(self.on_project_changed)
         project_layout.addWidget(self.project_combo)
 
+        b25 = self._s(25)
+        b80 = self._s(80)
+
         add_project_btn = QtWidgets.QPushButton("+")
-        add_project_btn.setFixedSize(25, 25)
+        add_project_btn.setFixedSize(b25, b25)
         add_project_btn.clicked.connect(self.on_add_project)
         project_layout.addWidget(add_project_btn)
 
         remove_project_btn = QtWidgets.QPushButton("-")
-        remove_project_btn.setFixedSize(25, 25)
+        remove_project_btn.setFixedSize(b25, b25)
         remove_project_btn.setStyleSheet("background-color: rgb(100, 70, 70);")
         remove_project_btn.clicked.connect(self.on_remove_project)
         project_layout.addWidget(remove_project_btn)
 
         rename_project_btn = QtWidgets.QPushButton("名前変更")
-        rename_project_btn.setFixedHeight(25)
-        rename_project_btn.setMinimumWidth(80)
+        rename_project_btn.setFixedHeight(b25)
+        rename_project_btn.setMinimumWidth(b80)
         rename_project_btn.clicked.connect(self.on_rename_project)
         project_layout.addWidget(rename_project_btn)
 
         duplicate_project_btn = QtWidgets.QPushButton("複製")
-        duplicate_project_btn.setFixedHeight(25)
-        duplicate_project_btn.setMinimumWidth(80)
+        duplicate_project_btn.setFixedHeight(b25)
+        duplicate_project_btn.setMinimumWidth(b80)
         duplicate_project_btn.clicked.connect(self.on_duplicate_project)
         project_layout.addWidget(duplicate_project_btn)
 
@@ -154,25 +162,25 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         model_layout.addWidget(self.model_combo)
 
         add_model_btn = QtWidgets.QPushButton("+")
-        add_model_btn.setFixedSize(25, 25)
+        add_model_btn.setFixedSize(b25, b25)
         add_model_btn.clicked.connect(self.on_add_model)
         model_layout.addWidget(add_model_btn)
 
         remove_model_btn = QtWidgets.QPushButton("-")
-        remove_model_btn.setFixedSize(25, 25)
+        remove_model_btn.setFixedSize(b25, b25)
         remove_model_btn.setStyleSheet("background-color: rgb(100, 70, 70);")
         remove_model_btn.clicked.connect(self.on_remove_model)
         model_layout.addWidget(remove_model_btn)
 
         rename_model_btn = QtWidgets.QPushButton("名前変更")
-        rename_model_btn.setFixedHeight(25)
-        rename_model_btn.setMinimumWidth(80)
+        rename_model_btn.setFixedHeight(b25)
+        rename_model_btn.setMinimumWidth(b80)
         rename_model_btn.clicked.connect(self.on_rename_model)
         model_layout.addWidget(rename_model_btn)
 
         duplicate_model_btn = QtWidgets.QPushButton("複製")
-        duplicate_model_btn.setFixedHeight(25)
-        duplicate_model_btn.setMinimumWidth(80)
+        duplicate_model_btn.setFixedHeight(b25)
+        duplicate_model_btn.setMinimumWidth(b80)
         duplicate_model_btn.clicked.connect(self.on_duplicate_model)
         model_layout.addWidget(duplicate_model_btn)
 
@@ -197,8 +205,8 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
             }
         """)
         buttons_group_layout = QtWidgets.QVBoxLayout(buttons_group)
-        buttons_group_layout.setContentsMargins(5, 5, 5, 5)
-        buttons_group_layout.setSpacing(5)
+        buttons_group_layout.setContentsMargins(m5, m5, m5, m5)
+        buttons_group_layout.setSpacing(m5)
 
         # FlowLayoutで段組み対応
         buttons_container = QtWidgets.QWidget()
@@ -211,8 +219,8 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
             # FlowLayoutが利用できない場合のフォールバック
             self.buttons_layout = QtWidgets.QHBoxLayout(buttons_container)
 
-        self.buttons_layout.setSpacing(5)
-        self.buttons_layout.setContentsMargins(5, 5, 5, 5)
+        self.buttons_layout.setSpacing(m5)
+        self.buttons_layout.setContentsMargins(m5, m5, m5, m5)
 
         buttons_group_layout.addWidget(buttons_container)
 
@@ -220,38 +228,38 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         list_control_layout = QtWidgets.QHBoxLayout()
 
         add_list_btn = QtWidgets.QPushButton("+ 作業追加")
-        add_list_btn.setFixedHeight(25)
+        add_list_btn.setFixedHeight(b25)
         add_list_btn.clicked.connect(self.on_add_list)
         list_control_layout.addWidget(add_list_btn)
 
         remove_list_btn = QtWidgets.QPushButton("- 作業削除")
-        remove_list_btn.setFixedHeight(25)
+        remove_list_btn.setFixedHeight(b25)
         remove_list_btn.setStyleSheet("background-color: rgb(100, 70, 70);")
         remove_list_btn.clicked.connect(self.on_remove_current_list)
         list_control_layout.addWidget(remove_list_btn)
 
         duplicate_work_btn = QtWidgets.QPushButton("作業複製")
-        duplicate_work_btn.setFixedHeight(25)
+        duplicate_work_btn.setFixedHeight(b25)
         duplicate_work_btn.clicked.connect(self.on_duplicate_work)
         list_control_layout.addWidget(duplicate_work_btn)
 
         list_control_layout.addStretch()
 
         import_btn = QtWidgets.QPushButton("読み込み")
-        import_btn.setFixedHeight(25)
-        import_btn.setFixedWidth(80)
+        import_btn.setFixedHeight(b25)
+        import_btn.setFixedWidth(b80)
         import_btn.clicked.connect(self.import_preset)
         list_control_layout.addWidget(import_btn)
 
         export_btn = QtWidgets.QPushButton("書き出し")
-        export_btn.setFixedHeight(25)
-        export_btn.setFixedWidth(80)
+        export_btn.setFixedHeight(b25)
+        export_btn.setFixedWidth(b80)
         export_btn.clicked.connect(self.export_preset)
         list_control_layout.addWidget(export_btn)
 
         save_btn = QtWidgets.QPushButton("保存")
-        save_btn.setFixedHeight(25)
-        save_btn.setFixedWidth(60)
+        save_btn.setFixedHeight(b25)
+        save_btn.setFixedWidth(self._s(60))
         save_btn.clicked.connect(self.save_settings)
         list_control_layout.addWidget(save_btn)
 
@@ -261,8 +269,8 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         work_content_container = QtWidgets.QWidget()
         work_content_container.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         work_content_layout = QtWidgets.QVBoxLayout(work_content_container)
-        work_content_layout.setContentsMargins(10, 5, 5, 5)
-        work_content_layout.setSpacing(5)
+        work_content_layout.setContentsMargins(self._s(10), m5, m5, m5)
+        work_content_layout.setSpacing(m5)
         buttons_group_layout.addWidget(work_content_container, 1)  # ストレッチファクター1（拡縮可能）
 
         main_layout.addWidget(buttons_group, 1)  # ストレッチファクター1（拡縮可能）
@@ -286,19 +294,19 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
             }
         """)
         common_filter_layout = QtWidgets.QVBoxLayout()
-        common_filter_layout.setSpacing(5)
+        common_filter_layout.setSpacing(m5)
 
         # 共通フィルター入力コンテナ（スクロール可能）
         common_filter_scroll = QtWidgets.QScrollArea()
         common_filter_scroll.setWidgetResizable(True)
         common_filter_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
-        common_filter_scroll.setMinimumHeight(80)
+        common_filter_scroll.setMinimumHeight(self._s(80))
         common_filter_scroll.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         self.common_filter_container = QtWidgets.QWidget()
         # 2 列グリッドで配置（作業プリセットのフレーズ指定欄）
         self.common_filter_container_layout = QtWidgets.QGridLayout(self.common_filter_container)
-        self.common_filter_container_layout.setSpacing(3)
+        self.common_filter_container_layout.setSpacing(self._s(3))
         self.common_filter_container_layout.setContentsMargins(0, 0, 0, 0)
         self.common_filter_container_layout.setAlignment(QtCore.Qt.AlignTop)
         self.common_filter_container_layout.setColumnStretch(0, 1)
@@ -313,12 +321,12 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         common_filter_buttons_layout = QtWidgets.QHBoxLayout()
 
         add_common_filter_btn = QtWidgets.QPushButton("+ フィルター追加")
-        add_common_filter_btn.setFixedHeight(25)
+        add_common_filter_btn.setFixedHeight(b25)
         add_common_filter_btn.clicked.connect(self.on_add_common_filter)
         common_filter_buttons_layout.addWidget(add_common_filter_btn)
 
         remove_common_filter_btn = QtWidgets.QPushButton("- フィルター削除")
-        remove_common_filter_btn.setFixedHeight(25)
+        remove_common_filter_btn.setFixedHeight(b25)
         remove_common_filter_btn.setStyleSheet("background-color: rgb(100, 70, 70);")
         remove_common_filter_btn.clicked.connect(self.on_remove_last_common_filter)
         common_filter_buttons_layout.addWidget(remove_common_filter_btn)
@@ -347,8 +355,8 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
             }
         """)
         phrase_preset_group_layout = QtWidgets.QVBoxLayout(phrase_preset_group)
-        phrase_preset_group_layout.setContentsMargins(5, 5, 5, 5)
-        phrase_preset_group_layout.setSpacing(5)
+        phrase_preset_group_layout.setContentsMargins(m5, m5, m5, m5)
+        phrase_preset_group_layout.setSpacing(m5)
 
         # FlowLayoutで段組み対応
         phrase_preset_buttons_container = QtWidgets.QWidget()
@@ -360,8 +368,8 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         else:
             self.phrase_preset_buttons_layout = QtWidgets.QHBoxLayout(phrase_preset_buttons_container)
 
-        self.phrase_preset_buttons_layout.setSpacing(5)
-        self.phrase_preset_buttons_layout.setContentsMargins(5, 5, 5, 5)
+        self.phrase_preset_buttons_layout.setSpacing(m5)
+        self.phrase_preset_buttons_layout.setContentsMargins(m5, m5, m5, m5)
 
         phrase_preset_group_layout.addWidget(phrase_preset_buttons_container)
 
@@ -369,18 +377,18 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         phrase_preset_control_layout = QtWidgets.QHBoxLayout()
 
         add_phrase_preset_btn = QtWidgets.QPushButton("+ フレーズプリセット追加")
-        add_phrase_preset_btn.setFixedHeight(25)
+        add_phrase_preset_btn.setFixedHeight(b25)
         add_phrase_preset_btn.clicked.connect(self.on_add_phrase_preset)
         phrase_preset_control_layout.addWidget(add_phrase_preset_btn)
 
         remove_phrase_preset_btn = QtWidgets.QPushButton("- フレーズプリセット削除")
-        remove_phrase_preset_btn.setFixedHeight(25)
+        remove_phrase_preset_btn.setFixedHeight(b25)
         remove_phrase_preset_btn.setStyleSheet("background-color: rgb(100, 70, 70);")
         remove_phrase_preset_btn.clicked.connect(self.on_remove_phrase_preset)
         phrase_preset_control_layout.addWidget(remove_phrase_preset_btn)
 
         duplicate_phrase_preset_btn = QtWidgets.QPushButton("フレーズプリセット複製")
-        duplicate_phrase_preset_btn.setFixedHeight(25)
+        duplicate_phrase_preset_btn.setFixedHeight(b25)
         duplicate_phrase_preset_btn.clicked.connect(self.on_duplicate_phrase_preset)
         phrase_preset_control_layout.addWidget(duplicate_phrase_preset_btn)
 
@@ -391,8 +399,8 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         phrase_preset_content_container = QtWidgets.QWidget()
         phrase_preset_content_container.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         phrase_preset_content_layout = QtWidgets.QVBoxLayout(phrase_preset_content_container)
-        phrase_preset_content_layout.setContentsMargins(10, 5, 5, 5)
-        phrase_preset_content_layout.setSpacing(5)
+        phrase_preset_content_layout.setContentsMargins(self._s(10), m5, m5, m5)
+        phrase_preset_content_layout.setSpacing(m5)
         phrase_preset_group_layout.addWidget(phrase_preset_content_container, 1)  # ストレッチファクター1
 
         work_content_layout.addWidget(phrase_preset_group, 3)  # ストレッチファクター3（高優先度）
@@ -416,7 +424,7 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
             }
         """)
         phrase_layout = QtWidgets.QVBoxLayout()
-        phrase_layout.setSpacing(5)
+        phrase_layout.setSpacing(m5)
 
         # マッチモード選択
         match_mode_layout = QtWidgets.QHBoxLayout()
@@ -428,7 +436,7 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         self.match_mode_combo.currentIndexChanged.connect(self.on_filter_changed)
         match_mode_layout.addWidget(self.match_mode_combo)
 
-        match_mode_layout.addSpacing(20)
+        match_mode_layout.addSpacing(self._s(20))
 
         # DAGオブジェクトのみチェックボックス
         self.dag_only_check = QtWidgets.QCheckBox("DAGオブジェクトのみ")
@@ -436,7 +444,7 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         self.dag_only_check.stateChanged.connect(self.on_filter_changed)
         match_mode_layout.addWidget(self.dag_only_check)
 
-        match_mode_layout.addSpacing(20)
+        match_mode_layout.addSpacing(self._s(20))
 
         # 共通フィルター使用チェックボックス
         self.use_common_filter_check = QtWidgets.QCheckBox("共通フィルター使用")
@@ -450,12 +458,12 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         # プリセットID設定エリア
         id_layout = QtWidgets.QHBoxLayout()
         id_label = QtWidgets.QLabel("共通ダイアログID:")
-        id_label.setMinimumWidth(120)
+        id_label.setMinimumWidth(self._s(120))
         id_layout.addWidget(id_label)
 
         self.preset_id_input = QtWidgets.QLineEdit()
         self.preset_id_input.setPlaceholderText("数字を入力 (例: 1, 2, 3...)")
-        self.preset_id_input.setMaximumWidth(150)
+        self.preset_id_input.setMaximumWidth(self._s(150))
         # 数字のみ入力可能に設定
         validator = QtGui.QIntValidator(1, 9999, self.preset_id_input)
         self.preset_id_input.setValidator(validator)
@@ -476,7 +484,7 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         self.phrase_container = QtWidgets.QWidget()
         # 2 列グリッドで配置
         self.phrase_container_layout = QtWidgets.QGridLayout(self.phrase_container)
-        self.phrase_container_layout.setSpacing(3)
+        self.phrase_container_layout.setSpacing(self._s(3))
         self.phrase_container_layout.setContentsMargins(0, 0, 0, 0)
         self.phrase_container_layout.setAlignment(QtCore.Qt.AlignTop)
         self.phrase_container_layout.setColumnStretch(0, 1)
@@ -491,12 +499,12 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         phrase_buttons_layout = QtWidgets.QHBoxLayout()
 
         add_phrase_btn = QtWidgets.QPushButton("+ フレーズ追加")
-        add_phrase_btn.setFixedHeight(25)
+        add_phrase_btn.setFixedHeight(b25)
         add_phrase_btn.clicked.connect(self.on_add_phrase)
         phrase_buttons_layout.addWidget(add_phrase_btn)
 
         remove_phrase_btn = QtWidgets.QPushButton("- フレーズ削除")
-        remove_phrase_btn.setFixedHeight(25)
+        remove_phrase_btn.setFixedHeight(b25)
         remove_phrase_btn.setStyleSheet("background-color: rgb(100, 70, 70);")
         remove_phrase_btn.clicked.connect(self.on_remove_last_phrase)
         phrase_buttons_layout.addWidget(remove_phrase_btn)
@@ -525,7 +533,59 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
             }
         """)
         list_layout = QtWidgets.QVBoxLayout()
-        list_layout.setSpacing(5)
+        list_layout.setSpacing(m5)
+
+        # ノード登録機能のチェックボックス行 (ノードリストの上)
+        registered_checks_layout = QtWidgets.QHBoxLayout()
+        registered_checks_layout.setContentsMargins(0, 0, 0, 0)
+        registered_checks_layout.setSpacing(self._s(10))
+
+        # チェックボックス A: 登録ノードのみ表示
+        self.show_registered_only_check = QtWidgets.QCheckBox("登録ノードのみ表示")
+        self.show_registered_only_check.setChecked(False)
+        self.show_registered_only_check.stateChanged.connect(self.on_show_registered_only_changed)
+        registered_checks_layout.addWidget(self.show_registered_only_check)
+
+        # チェックボックス B: フィルタを適用 (A がオンのときのみ有効)
+        self.apply_filter_to_registered_check = QtWidgets.QCheckBox("フィルタを適用")
+        self.apply_filter_to_registered_check.setChecked(False)
+        self.apply_filter_to_registered_check.setEnabled(False)
+        self.apply_filter_to_registered_check.stateChanged.connect(self.on_filter_changed)
+        registered_checks_layout.addWidget(self.apply_filter_to_registered_check)
+
+        registered_checks_layout.addStretch()
+        list_layout.addLayout(registered_checks_layout)
+
+        # 登録ノード操作ボタン行 (チェックボックス A がオンのときのみ表示)
+        self.registered_buttons_widget = QtWidgets.QWidget()
+        registered_buttons_layout = QtWidgets.QHBoxLayout(self.registered_buttons_widget)
+        registered_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        registered_buttons_layout.setSpacing(m5)
+
+        register_btn = QtWidgets.QPushButton("+ 登録")
+        register_btn.setFixedHeight(b25)
+        register_btn.setStyleSheet("background-color: rgb(70, 110, 80);")
+        register_btn.setToolTip("Mayaで選択中のノードをこのフレーズプリセットに登録")
+        register_btn.clicked.connect(self.on_register_selected_nodes)
+        registered_buttons_layout.addWidget(register_btn)
+
+        unregister_btn = QtWidgets.QPushButton("- 登録解除")
+        unregister_btn.setFixedHeight(b25)
+        unregister_btn.setStyleSheet("background-color: rgb(110, 80, 70);")
+        unregister_btn.setToolTip("リストで選択中のノードを登録解除")
+        unregister_btn.clicked.connect(self.on_unregister_selected_nodes)
+        registered_buttons_layout.addWidget(unregister_btn)
+
+        clear_registered_btn = QtWidgets.QPushButton("一括クリア")
+        clear_registered_btn.setFixedHeight(b25)
+        clear_registered_btn.setStyleSheet("background-color: rgb(120, 70, 70);")
+        clear_registered_btn.setToolTip("登録ノードをすべて解除")
+        clear_registered_btn.clicked.connect(self.on_clear_registered_nodes)
+        registered_buttons_layout.addWidget(clear_registered_btn)
+
+        registered_buttons_layout.addStretch()
+        self.registered_buttons_widget.setVisible(False)
+        list_layout.addWidget(self.registered_buttons_widget)
 
         self.node_list = QtWidgets.QListWidget()
         self.node_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -543,24 +603,48 @@ class MultiFilteringOutlinerWidget(HierarchyManagerMixin, WorkPresetManagerMixin
         action_buttons_layout = QtWidgets.QHBoxLayout()
 
         dialog_btn = QtWidgets.QPushButton("ダイアログで開く")
-        dialog_btn.setMinimumHeight(30)
+        dialog_btn.setMinimumHeight(self._s(30))
         dialog_btn.setStyleSheet("background-color: rgb(102, 179, 153);")
         dialog_btn.clicked.connect(self.on_open_dialog)
         action_buttons_layout.addWidget(dialog_btn)
 
         common_dialog_btn = QtWidgets.QPushButton("共通ダイアログで開く")
-        common_dialog_btn.setMinimumHeight(30)
+        common_dialog_btn.setMinimumHeight(self._s(30))
         common_dialog_btn.setStyleSheet("background-color: rgb(153, 102, 179);")
         common_dialog_btn.clicked.connect(self.on_open_common_dialog)
         action_buttons_layout.addWidget(common_dialog_btn)
 
         integrated_dialog_btn = QtWidgets.QPushButton("統合ダイアログで開く")
-        integrated_dialog_btn.setMinimumHeight(30)
+        integrated_dialog_btn.setMinimumHeight(self._s(30))
         integrated_dialog_btn.setStyleSheet("background-color: rgb(102, 140, 200);")
         integrated_dialog_btn.clicked.connect(self.open_integrated_dialog)
         action_buttons_layout.addWidget(integrated_dialog_btn)
 
         phrase_preset_content_layout.addLayout(action_buttons_layout)
+
+    def _on_dpi_scale_changed(self):
+        """DPI スケール変更時に全ウィジェットのフォント・スペーシングを更新"""
+        # ウィジェット全体のフォントサイズをスケーリング
+        base_font = QtGui.QFont()
+        base_font.setPointSizeF(self._spt(9))
+        self.setFont(base_font)
+
+        # ボタン高さ・幅を再設定
+        b25 = self._s(25)
+        b80 = self._s(80)
+        for btn in self.findChildren(QtWidgets.QPushButton):
+            # fixedHeight が設定されていたボタンの高さを更新
+            if btn.minimumHeight() > 0 and btn.maximumHeight() < 16777215:
+                btn.setFixedHeight(b25)
+            elif btn.minimumHeight() > 0:
+                btn.setMinimumHeight(self._s(30))
+
+        # レイアウトのマージンとスペーシングを再設定
+        m5 = self._s(5)
+        main_layout = self.layout()
+        if main_layout:
+            main_layout.setContentsMargins(m5, m5, m5, m5)
+            main_layout.setSpacing(self._s(10))
 
     def closeEvent(self, event):
         """ウィンドウが閉じられる時に呼ばれる"""

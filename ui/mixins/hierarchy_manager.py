@@ -38,7 +38,10 @@ class HierarchyManagerMixin:
                     'phrase_data': [{'text': '', 'enabled': True, 'exclude': False, 'exact_token': False}],
                     'match_mode': 'any',
                     'dag_only': False,
-                    'use_common_filter': True
+                    'use_common_filter': True,
+                    'registered_node_uuids': [],
+                    'show_registered_only': False,
+                    'apply_filter_to_registered': False,
                 }
             ]
         }

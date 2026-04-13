@@ -18,6 +18,16 @@ try:
 except ImportError:
     from PySide2 import QtWidgets, QtCore, QtGui
 
+# モジュール先頭で本プロジェクトの tools.multi_filtering_outliner を固定 import する。
+# 起動時 (one_line_launch.py / one_line_launch_dev.py) で sys.path 先頭がこのプロジェクトに
+# 設定された状態で読み込まれるため、ここで束縛しておけば、後段で他プロジェクトの
+# tools パッケージが sys.modules に入っても影響を受けない。
+# 遅延 import (関数内の `from tools import multi_filtering_outliner`) は
+# 実行時の sys.modules['tools'] を参照してしまい、別プロジェクトの tools/__init__.py が
+# 先にキャッシュされていると ImportError になるため使わない。
+from tools import multi_filtering_outliner as _mfo
+from ui.mixins.dpi_scale import DpiScaleMixin
+
 
 MAX_ROWS = 100
 MAX_COLS = 100
@@ -71,7 +81,7 @@ class _IntegratedCell(QtWidgets.QFrame):
     delete_requested = QtCore.Signal(object)  # (cell_widget,)
     cell_dropped = QtCore.Signal(object, int, int)  # (target_cell, src_row, src_col)
 
-    def __init__(self, parent=None):
+    def __init__(self, ui_scale=1.0, parent=None):
         super().__init__(parent)
         self.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.setStyleSheet(
@@ -83,16 +93,21 @@ class _IntegratedCell(QtWidgets.QFrame):
         self.row_idx = -1
         self.col_idx = -1
         self._loading = False
+        self._ui_scale = float(ui_scale) if ui_scale else 1.0
         self.setAcceptDrops(True)
         self._create_ui()
 
+    def _s(self, value):
+        return int(round(value * self._ui_scale))
+
     def _create_ui(self):
         layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
-        layout.setSpacing(3)
+        m = self._s(4)
+        layout.setContentsMargins(m, m, m, m)
+        layout.setSpacing(self._s(3))
 
         header = QtWidgets.QHBoxLayout()
-        header.setSpacing(4)
+        header.setSpacing(self._s(4))
 
         # ドラッググリップ
         self.drag_grip = _DragGrip(
@@ -100,26 +115,36 @@ class _IntegratedCell(QtWidgets.QFrame):
             CELL_MIME,
             lambda: f"{self.row_idx},{self.col_idx}" if self.row_idx >= 0 else None,
         )
-        self.drag_grip.setFixedHeight(20)
+        self.drag_grip.setFixedHeight(self._s(20))
+        self.drag_grip.setStyleSheet(
+            "QLabel { color: rgb(200,200,200); padding: 0 4px; "
+            "background-color: rgba(80,80,100,180); border-radius: 2px; "
+            "font-size: 9pt; }"
+        )
         header.addWidget(self.drag_grip)
 
-        header.addWidget(QtWidgets.QLabel("ID:"))
+        id_label = QtWidgets.QLabel("ID:")
+        id_label.setStyleSheet("font-size: 9pt;")
+        header.addWidget(id_label)
 
         self.id_combo = QtWidgets.QComboBox()
-        self.id_combo.setMinimumWidth(70)
+        self.id_combo.setMinimumWidth(self._s(70))
+        self.id_combo.setStyleSheet("QComboBox { font-size: 9pt; }")
         self.id_combo.currentIndexChanged.connect(self._on_combo_changed)
         header.addWidget(self.id_combo, 1)
 
         self.count_label = QtWidgets.QLabel("0")
-        self.count_label.setStyleSheet("color: rgb(200,200,200); background: transparent;")
+        self.count_label.setStyleSheet(
+            "color: rgb(200,200,200); background: transparent; font-size: 9pt;"
+        )
         header.addWidget(self.count_label)
 
         # 削除ボタン
         self.delete_btn = QtWidgets.QPushButton("×")
-        self.delete_btn.setFixedSize(20, 20)
+        self.delete_btn.setFixedSize(self._s(20), self._s(20))
         self.delete_btn.setStyleSheet(
             "QPushButton { background-color: rgb(120, 70, 70); color: white; "
-            "border-radius: 2px; font-weight: bold; }"
+            "border-radius: 2px; font-weight: bold; font-size: 10pt; }"
             "QPushButton:hover { background-color: rgb(160, 80, 80); }"
         )
         self.delete_btn.setToolTip("このセルを削除")
@@ -129,11 +154,16 @@ class _IntegratedCell(QtWidgets.QFrame):
         layout.addLayout(header)
 
         self.title_label = QtWidgets.QLabel("(未割り当て)")
-        self.title_label.setStyleSheet("color: rgb(180,200,220); font-size: 9pt;")
+        self.title_label.setStyleSheet(
+            "color: rgb(180,200,220); font-size: 9pt;"
+        )
         self.title_label.setWordWrap(True)
         layout.addWidget(self.title_label)
 
         self.list_widget = QtWidgets.QListWidget()
+        self.list_widget.setStyleSheet(
+            "QListWidget { font-size: 9pt; }"
+        )
         self.list_widget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.list_widget.itemDoubleClicked.connect(self._on_item_double_clicked)
         self.list_widget.itemSelectionChanged.connect(self._on_selection_changed)
@@ -167,17 +197,67 @@ class _IntegratedCell(QtWidgets.QFrame):
         self.id_changed.emit(self, new_id)
 
     def set_nodes(self, nodes, title=""):
-        self.nodes = list(nodes)
-        self.count_label.setText(str(len(self.nodes)))
+        # セルのリスト選択は Maya シーンの現在の選択と同期させる方針:
+        #  - ユーザがリストでアイテムをクリック → _on_selection_changed が
+        #    Maya 側を更新する。次の自動更新時には Maya 選択と一致するため
+        #    リストの選択もそのまま維持される。
+        #  - ユーザが Maya 側で別ノードを選択 → 次の自動更新時にリストの
+        #    選択がクリア/更新され、Maya の状態に追従する。
+        # こうすることで「自動更新で勝手に選択が消える」「別ノードを選んでも
+        # 古い選択が残り続ける」両方の問題を回避できる。
+        new_nodes = list(nodes)
+
+        # 現在の Maya 選択（フルパス）を取得
+        try:
+            import maya.cmds as cmds
+            maya_selected = set(cmds.ls(selection=True, long=True) or [])
+        except ImportError:
+            maya_selected = set()
+
+        # 現在のリスト内容と選択を取得
+        current_nodes = []
+        current_selected = set()
+        for i in range(self.list_widget.count()):
+            it = self.list_widget.item(i)
+            p = it.data(QtCore.Qt.UserRole) if it else None
+            if p:
+                current_nodes.append(p)
+                if it.isSelected():
+                    current_selected.add(p)
+
+        self.nodes = new_nodes
+        self.count_label.setText(str(len(new_nodes)))
         self.title_label.setText(title if title else "(未割り当て)")
+
+        # Maya 選択のうちこのセルに含まれるものが「あるべき選択」
+        desired_selected = {p for p in new_nodes if p in maya_selected}
+
+        # 内容も選択も同一なら何もしない（スクロール位置等を維持）
+        if current_nodes == new_nodes and current_selected == desired_selected:
+            return
+
         self.list_widget.blockSignals(True)
-        self.list_widget.clear()
-        for node_path in self.nodes:
-            short_name = node_path.split('|')[-1]
-            item = QtWidgets.QListWidgetItem(short_name)
-            item.setData(QtCore.Qt.UserRole, node_path)
-            self.list_widget.addItem(item)
-        self.list_widget.blockSignals(False)
+        try:
+            if current_nodes == new_nodes:
+                # 内容は同じで選択だけ差し替え（clear せずスクロール位置を維持）
+                for i in range(self.list_widget.count()):
+                    it = self.list_widget.item(i)
+                    p = it.data(QtCore.Qt.UserRole)
+                    should_be_selected = p in desired_selected
+                    if it.isSelected() != should_be_selected:
+                        it.setSelected(should_be_selected)
+            else:
+                # 内容が変わっているので作り直し
+                self.list_widget.clear()
+                for node_path in new_nodes:
+                    short_name = node_path.split('|')[-1]
+                    item = QtWidgets.QListWidgetItem(short_name)
+                    item.setData(QtCore.Qt.UserRole, node_path)
+                    self.list_widget.addItem(item)
+                    if node_path in desired_selected:
+                        item.setSelected(True)
+        finally:
+            self.list_widget.blockSignals(False)
 
     def _on_item_double_clicked(self, item):
         QtWidgets.QApplication.clipboard().setText(item.text())
@@ -281,7 +361,7 @@ class _IntegratedRow(QtWidgets.QWidget):
         self.row_dropped.emit(self, src_row)
 
 
-class IntegratedNodeListDialog(QtWidgets.QDialog):
+class IntegratedNodeListDialog(DpiScaleMixin, QtWidgets.QDialog):
     """モデルプリセット単位で管理される統合ダイアログ"""
 
     def __init__(self, project_index, model_index, parent_widget, parent=None):
@@ -295,6 +375,7 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
                 pass
 
         super().__init__(parent)
+        self._init_dpi_scale()
 
         self.project_index = project_index
         self.model_index = model_index
@@ -323,33 +404,68 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
         self.update_timer.timeout.connect(self._auto_refresh)
         self.update_timer.start(1000)
 
+    # ========== DPI 適応スケーリング ==========
+
+    def _on_dpi_scale_changed(self):
+        """DpiScaleMixin からのコールバック: スケール変更時に再構築"""
+        self._restyle_static_ui()
+        self._rebuild_from_data()
+
+    def _restyle_static_ui(self):
+        """ヘッダー/ツールバー等の静的要素にスケールを反映"""
+        if hasattr(self, 'header_label') and self.header_label is not None:
+            self.header_label.setStyleSheet(
+                f"font-weight: bold; font-size: {self._spt(12):.2f}pt; color: rgb(180, 200, 230);"
+            )
+        if hasattr(self, 'hint_label') and self.hint_label is not None:
+            self.hint_label.setStyleSheet(
+                f"color: rgb(150,150,150); font-size: {self._spt(9):.2f}pt;"
+            )
+        # ツールバーボタンのフォントサイズ
+        try:
+            base_font = QtWidgets.QApplication.font()
+        except Exception:
+            base_font = self.font()
+        f = QtGui.QFont(base_font)
+        f.setPointSizeF(max(1.0, self._spt(9)))
+        for attr in ('add_row_btn', 'refresh_btn'):
+            btn = getattr(self, attr, None)
+            if btn is not None:
+                btn.setFont(f)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # 表示直後の画面に応じてスケールを適用
+        QtCore.QTimer.singleShot(0, lambda: self._apply_dpi_scale_if_changed())
+
     # ========== UI 構築 ==========
 
     def _create_ui(self):
         layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(6, 6, 6, 6)
-        layout.setSpacing(6)
+        m = self._s(6)
+        layout.setContentsMargins(m, m, m, m)
+        layout.setSpacing(self._s(6))
 
-        header_label = QtWidgets.QLabel("統合ダイアログ")
-        header_label.setStyleSheet(
+        self.header_label = QtWidgets.QLabel("統合ダイアログ")
+        self.header_label.setStyleSheet(
             "font-weight: bold; font-size: 12pt; color: rgb(180, 200, 230);"
         )
-        header_label.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(header_label)
+        self.header_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(self.header_label)
 
         # 行追加/更新ツールバー（削除は各行/各セルの個別ボタンで行う）
         toolbar = QtWidgets.QHBoxLayout()
-        add_row_btn = QtWidgets.QPushButton("+ 行追加")
-        add_row_btn.clicked.connect(self.add_row)
-        toolbar.addWidget(add_row_btn)
+        self.add_row_btn = QtWidgets.QPushButton("+ 行追加")
+        self.add_row_btn.clicked.connect(self.add_row)
+        toolbar.addWidget(self.add_row_btn)
 
-        refresh_btn = QtWidgets.QPushButton("更新")
-        refresh_btn.clicked.connect(self.on_refresh)
-        toolbar.addWidget(refresh_btn)
+        self.refresh_btn = QtWidgets.QPushButton("更新")
+        self.refresh_btn.clicked.connect(self.on_refresh)
+        toolbar.addWidget(self.refresh_btn)
 
-        hint_label = QtWidgets.QLabel("(⋮⋮ をドラッグで並び替え)")
-        hint_label.setStyleSheet("color: rgb(150,150,150); font-size: 9pt;")
-        toolbar.addWidget(hint_label)
+        self.hint_label = QtWidgets.QLabel("(⋮⋮ をドラッグで並び替え)")
+        self.hint_label.setStyleSheet("color: rgb(150,150,150); font-size: 9pt;")
+        toolbar.addWidget(self.hint_label)
 
         toolbar.addStretch()
         layout.addLayout(toolbar)
@@ -429,7 +545,7 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
         row_widget.row_dropped.connect(self._on_row_dropped)
         row_outer = QtWidgets.QVBoxLayout(row_widget)
         row_outer.setContentsMargins(0, 0, 0, 0)
-        row_outer.setSpacing(2)
+        row_outer.setSpacing(self._s(2))
 
         # 行ツールバー
         row_toolbar = QtWidgets.QHBoxLayout()
@@ -440,17 +556,24 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
             ROW_MIME,
             lambda rw=row_widget: str(rw.row_idx) if rw.row_idx >= 0 else None,
         )
-        row_grip.setFixedHeight(22)
+        row_grip.setFixedHeight(self._s(22))
+        row_grip.setStyleSheet(
+            "QLabel { color: rgb(200,200,200); padding: 0 4px; "
+            "background-color: rgba(80,80,100,180); border-radius: 2px; "
+            "font-size: 10pt; }"
+        )
         row_toolbar.addWidget(row_grip)
 
         row_label = QtWidgets.QLabel(f"行 {row_idx + 1}")
-        row_label.setStyleSheet("color: rgb(180, 180, 180); font-size: 9pt;")
+        row_label.setStyleSheet(
+            "color: rgb(180, 180, 180); font-size: 9pt;"
+        )
         row_toolbar.addWidget(row_label)
 
-        # 行削除ボタン（フォントサイズはデフォルトの 75% + 2pt）
+        # 行削除ボタン（フォントサイズはデフォルトの 75%）
         delete_row_btn = QtWidgets.QPushButton("× 行削除")
-        delete_row_btn.setFixedHeight(22)
-        delete_row_btn.setFixedWidth(70)
+        delete_row_btn.setFixedHeight(self._s(22))
+        delete_row_btn.setFixedWidth(self._s(70))
         base_pt = self.font().pointSizeF()
         if base_pt <= 0:
             base_pt = 9.0
@@ -471,18 +594,18 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
         cells_container = QtWidgets.QWidget()
         cells_hbox = QtWidgets.QHBoxLayout(cells_container)
         cells_hbox.setContentsMargins(0, 0, 0, 0)
-        cells_hbox.setSpacing(4)
+        cells_hbox.setSpacing(self._s(4))
         row_outer.addWidget(cells_container, 1)
 
         # 「+」ボタンは右端のセルの右隣りに置く（青背景・縦はリストと同じ高さに伸縮）
         add_cell_btn = QtWidgets.QPushButton("+")
-        add_cell_btn.setFixedWidth(28)
+        add_cell_btn.setFixedWidth(self._s(28))
         add_cell_btn.setSizePolicy(
             QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding
         )
         add_cell_btn.setStyleSheet(
             "QPushButton { background-color: rgb(45, 75, 120); color: white; "
-            "font-weight: bold; border-radius: 3px; }"
+            "font-weight: bold; border-radius: 3px; font-size: 12pt; }"
             "QPushButton:hover { background-color: rgb(55, 90, 140); }"
         )
         add_cell_btn.setToolTip("この行に列を追加")
@@ -496,7 +619,7 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
     def _append_cell_widget(self, row_idx, initial_id=""):
         if row_idx < 0 or row_idx >= len(self._row_entries):
             return
-        cell = _IntegratedCell()
+        cell = _IntegratedCell(ui_scale=self._ui_scale)
         cell.unique_id = initial_id
         cell.row_idx = row_idx
         cell.col_idx = len(self._rows[row_idx])
@@ -713,12 +836,9 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
             cell.set_nodes([], f"ID={uid} (該当プリセットなし)")
             return
 
-        try:
-            from tools import multi_filtering_outliner as nf
-        except Exception as e:
-            print(f"[IntegratedNodeListDialog] multi_filtering_outliner import失敗: {e}")
-            cell.set_nodes([], f"ID={uid} (import失敗)")
-            return
+        # モジュール先頭で固定 import 済みのものを使う
+        # (関数内 import は他プロジェクトの tools 衝突で失敗するため避ける)
+        nf = _mfo
 
         # CommonNodeListDialog.on_refresh と同等のロジック
 
@@ -761,16 +881,52 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
 
         match_mode = phrase_preset.get('match_mode', 'any')
 
-        if common_include_configs:
-            matched_nodes = nf.filter_nodes_by_phrase_configs(common_include_configs, 'all')
-        else:
-            matched_nodes = nf.get_all_nodes()
+        # 登録ノードモード
+        show_registered_only = phrase_preset.get('show_registered_only', False)
+        apply_filter_to_registered = phrase_preset.get('apply_filter_to_registered', False)
+        skip_phrase_filter = False
 
-        if common_exclude_configs:
+        if show_registered_only:
+            registered_uuids = phrase_preset.get('registered_node_uuids', [])
+            base_population = []
+            try:
+                import maya.cmds as cmds
+                for r_uid in registered_uuids:
+                    if not r_uid:
+                        continue
+                    try:
+                        nodes = cmds.ls(r_uid, long=True)
+                    except Exception:
+                        nodes = None
+                    if nodes:
+                        base_population.append(nodes[0])
+            except ImportError:
+                pass
+
+            if not apply_filter_to_registered:
+                matched_nodes = list(base_population)
+                skip_phrase_filter = True
+            else:
+                if common_include_configs:
+                    original_get_all = nf.get_all_nodes
+                    nf.get_all_nodes = lambda: list(base_population)
+                    try:
+                        matched_nodes = nf.filter_nodes_by_phrase_configs(common_include_configs, 'all')
+                    finally:
+                        nf.get_all_nodes = original_get_all
+                else:
+                    matched_nodes = list(base_population)
+        else:
+            if common_include_configs:
+                matched_nodes = nf.filter_nodes_by_phrase_configs(common_include_configs, 'all')
+            else:
+                matched_nodes = nf.get_all_nodes()
+
+        if not skip_phrase_filter and common_exclude_configs:
             common_excluded_nodes = nf.filter_nodes_by_phrase_configs(common_exclude_configs, 'any')
             matched_nodes = [n for n in matched_nodes if n not in common_excluded_nodes]
 
-        if include_configs:
+        if not skip_phrase_filter and include_configs:
             original_get_all = nf.get_all_nodes
             nf.get_all_nodes = lambda: matched_nodes
             try:
@@ -778,7 +934,7 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
             finally:
                 nf.get_all_nodes = original_get_all
 
-        if exclude_configs:
+        if not skip_phrase_filter and exclude_configs:
             excluded_nodes = nf.filter_nodes_by_phrase_configs(exclude_configs, 'any')
             matched_nodes = [n for n in matched_nodes if n not in excluded_nodes]
 
@@ -864,6 +1020,8 @@ class IntegratedNodeListDialog(QtWidgets.QDialog):
         super().moveEvent(event)
         if self.isVisible():
             self.save_current_geometry()
+            # 画面をまたいで移動した場合は DPI スケールを再適用
+            self._apply_dpi_scale_if_changed()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

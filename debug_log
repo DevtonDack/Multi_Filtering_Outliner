@@ -1,48 +1,118 @@
-// Result: scriptEditorPanel1Window|scriptEditorPanel1|formLayout219|formLayout221|paneLayout4|cmdScrollFieldReporter2
-import sys;sys.path.insert(0,r'\\wsl.localhost\Ubuntu-24.04\home\devton_dack_lts\Multi_Filtering_Outliner')if r'\\wsl.localhost\Ubuntu-24.04\home\devton_dack_lts\Multi_Filtering_Outliner'not in sys.path else None;exec("from ui.multi_filtering_outliner_ui import create_multi_filtering_outliner_tab;globals().update({'multi_filtering_outliner_window':create_multi_filtering_outliner_tab()})")
-
 [多重起動防止] 新しいウィンドウを作成します
+[DEBUG DPI] screen.name=Cintiq Pro 27
+[DEBUG DPI]   size=3840x2160
+[DEBUG DPI]   geometry=3840x2160
+[DEBUG DPI]   devicePixelRatio=1.0
+[DEBUG DPI]   logicalDPI=144.0
+[DEBUG DPI]   physicalDPI=163.71207051988378
+[DEBUG DPI]   physicalSize(mm)=596.0x335.0
+[DEBUG DPI] Method1 (size*dpr): 3840 * 1.0 = 3840.0
+[DEBUG DPI] phys_width=3840.0, scale=1.0
+[DEBUG DPI] final scale=1.0
 Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
 Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
 [load_common_filters_to_ui] 読み込み: 4個のフィルター
-[load_common_filters_to_ui] 内容: [{'text': 'FOREARM', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': 'TWIST', 'enabled': True, 'exclude': False, 'exact_token': False}, {'text': 'L', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': '0', 'enabled': True, 'exclude': False, 'exact_token': True}]
+[load_common_filters_to_ui] 内容: [{'text': 'FOREARM', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': 'TWIST1', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': 'L', 'enabled': True, 'exclude': False, 'exact_token': True}, {'text': '0', 'enabled': True, 'exclude': False, 'exact_token': True}]
 0個のノードが見つかりました
 Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
-3個のノードが見つかりました
+0個のノードが見つかりました
 Multi Filtering Outliner: 設定を保存しました（読み込み中）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
-3個のノードが見つかりました
+0個のノードが見つかりました
 Multi Filtering Outliner: 設定を読み込みました（階層構造）: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
 [DEBUG restore_model_geometry] current_model_index=0
 [DEBUG restore_model_geometry] project=プロジェクト1
 [DEBUG restore_model_geometry] model=モデル1
-[DEBUG restore_model_geometry] モデル 'モデル1' のジオメトリを復元: x=2822, y=709, w=658, h=1339
-[DEBUG restore_model_geometry] setGeometry実行後の実際の位置: x=2822, y=709
+[DEBUG restore_model_geometry] モデル 'モデル1' のジオメトリを復元: x=2186, y=151, w=658, h=1570
+[DEBUG restore_model_geometry] setGeometry実行後の実際の位置: x=2186, y=151
 [DEBUG __init__] 初期化完了。ダイアログの復元を開始します
 [DEBUG restore_dialogs] ダイアログ復元開始 (current_model_index=0)
 [DEBUG restore_model_dialogs] 開始 (current_model_index=0)
-専用ダイアログを復元しました: FOREARM_TWIST - AnimaSourceRotate, 位置 x=4045, y=586
-共通ダイアログを新規作成: ID=1
-共通ダイアログのジオメトリを復元: ID=1, 位置 x=3942, y=1203
-共通ダイアログを新規作成: ID=2
-共通ダイアログのジオメトリを復元: ID=2, 位置 x=4358, y=1199
-専用ダイアログを復元しました: FOREARM_TWIST - AnimaRbfSolver, 位置 x=5269, y=574
-共通ダイアログを再表示: ID=1
-共通ダイアログのジオメトリを復元: ID=1, 位置 x=3942, y=1203
-共通ダイアログを再表示: ID=2
-共通ダイアログのジオメトリを復元: ID=2, 位置 x=4358, y=1199
-共通ダイアログを再表示: ID=1
-共通ダイアログのジオメトリを復元: ID=1, 位置 x=3942, y=1203
-共通ダイアログを再表示: ID=2
-共通ダイアログのジオメトリを復元: ID=2, 位置 x=4358, y=1199
-専用ダイアログを復元しました: HLP_HUND - AnimaTargetRotate, 位置 x=4543, y=661
-共通ダイアログを新規作成: ID=3
-共通ダイアログのジオメトリを復元: ID=3, 位置 x=4722, y=1152
-共通ダイアログを新規作成: ID=7
-共通ダイアログのジオメトリを復元: ID=7, 位置 x=5183, y=1139
 [DEBUG restore_dialogs] ダイアログ復元完了
 [DEBUG __init__] ダイアログの復元が完了しました
-[DEBUG moveEvent] ウィンドウ移動: x=2822, y=709, モデル='モデル1'
-[DEBUG resizeEvent] ウィンドウリサイズ: w=658, h=1339, モデル='モデル1')
-[DEBUG on_open_common_dialog] 共通ダイアログを開く処理を開始
-[DEBUG on_open_common_dialog] フレーズプリセット名: AnimaSourceRotate, unique_id: 1
-[DEBUG on_open_common_dialog] 既存の共通ダイアログ(ID=1)を前面に表示
+[DEBUG moveEvent] ウィンドウ移動: x=2186, y=151, モデル='モデル1'
+[DEBUG resizeEvent] ウィンドウリサイズ: w=658, h=1570, モデル='モデル1')
+[DEBUG DPI] screen.name=Cintiq Pro 27
+[DEBUG DPI]   size=3840x2160
+[DEBUG DPI]   geometry=3840x2160
+[DEBUG DPI]   devicePixelRatio=1.0
+[DEBUG DPI]   logicalDPI=144.0
+[DEBUG DPI]   physicalDPI=163.71207051988378
+[DEBUG DPI]   physicalSize(mm)=596.0x335.0
+[DEBUG DPI] Method1 (size*dpr): 3840 * 1.0 = 3840.0
+[DEBUG DPI] phys_width=3840.0, scale=1.0
+[DEBUG DPI] final scale=1.0
+[DEBUG DPI] _on_dpi_scale_changed triggered, scale=1.0
+[DEBUG DPI] screen.name=Cintiq Pro 27
+[DEBUG DPI]   size=3840x2160
+[DEBUG DPI]   geometry=3840x2160
+[DEBUG DPI]   devicePixelRatio=1.0
+[DEBUG DPI]   logicalDPI=144.0
+[DEBUG DPI]   physicalDPI=163.71207051988378
+[DEBUG DPI]   physicalSize(mm)=596.0x335.0
+[DEBUG DPI] Method1 (size*dpr): 3840 * 1.0 = 3840.0
+[DEBUG DPI] phys_width=3840.0, scale=1.0
+[DEBUG DPI] final scale=1.0
+[DEBUG save_settings] ========== 保存内容確認 ==========
+[DEBUG save_settings] 現在のウィンドウ位置: x=2186, y=151, w=658, h=1570
+[DEBUG save_settings] current_model_index=0
+[DEBUG save_settings] プロジェクト[0]: プロジェクト1
+[DEBUG save_settings]   モデル[0] 'モデル1' ★現在選択中★: window_geometry有 (x=2186, y=151, w=658, h=1570)
+[DEBUG save_settings]   モデル[1] 'testM': window_geometry有 (x=2830, y=621, w=800, h=1037)
+[DEBUG save_settings]   モデル[2] 'GSS': window_geometry有 (x=2658, y=594, w=800, h=1070)
+Multi Filtering Outliner: 設定を保存しました: C:\Users\segawa_misato/.multi_filtering_outliner\multi_filtering_outliner_settings.json
+[DEBUG DPI] screen.name=Cintiq Pro 27
+[DEBUG DPI]   size=3840x2160
+[DEBUG DPI]   geometry=3840x2160
+[DEBUG DPI]   devicePixelRatio=1.0
+[DEBUG DPI]   logicalDPI=144.0
+[DEBUG DPI]   physicalDPI=163.71207051988378
+[DEBUG DPI]   physicalSize(mm)=596.0x335.0
+[DEBUG DPI] Method1 (size*dpr): 3840 * 1.0 = 3840.0
+[DEBUG DPI] phys_width=3840.0, scale=1.0
+[DEBUG DPI] final scale=1.0
+[DEBUG DPI] _on_dpi_scale_changed triggered, scale=1.0
+[DEBUG DPI] screen.name=LG FULL HD
+[DEBUG DPI]   size=1920x1080
+[DEBUG DPI]   geometry=1920x1080
+[DEBUG DPI]   devicePixelRatio=1.0
+[DEBUG DPI]   logicalDPI=96.0
+[DEBUG DPI]   physicalDPI=101.6
+[DEBUG DPI]   physicalSize(mm)=480.0x270.0
+[DEBUG DPI] Method1 (size*dpr): 1920 * 1.0 = 1920.0
+[DEBUG DPI] phys_width=1920.0, scale=0.5
+[DEBUG DPI] final scale=0.5
+[DEBUG DPI] _on_dpi_scale_changed triggered, scale=0.5
+[DEBUG moveEvent] ウィンドウ移動: x=2191, y=151, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2199, y=151, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2226, y=157, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2307, y=179, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2343, y=188, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2383, y=200, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2406, y=206, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2561, y=253, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2635, y=274, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2679, y=286, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2877, y=340, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=2940, y=357, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=3000, y=374, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=3082, y=393, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=3125, y=405, モデル='モデル1'
+[DEBUG moveEvent] ウィンドウ移動: x=3167, y=416, モデル='モデル1'
+[DEBUG resizeEvent] ウィンドウリサイズ: w=658, h=1407, モデル='モデル1')
+[DEBUG moveEvent] ウィンドウ移動: x=3570, y=517, モデル='モデル1'
+[DEBUG resizeEvent] ウィンドウリサイズ: w=658, h=1407, モデル='モデル1')
+[DEBUG DPI] screen.name=LG FULL HD
+[DEBUG DPI]   size=1920x1080
+[DEBUG DPI]   geometry=1920x1080
+[DEBUG DPI]   devicePixelRatio=1.0
+[DEBUG DPI]   logicalDPI=96.0
+[DEBUG DPI]   physicalDPI=101.6
+[DEBUG DPI]   physicalSize(mm)=480.0x270.0
+[DEBUG DPI] Method1 (size*dpr): 1920 * 1.0 = 1920.0
+[DEBUG DPI] phys_width=1920.0, scale=0.5
+[DEBUG DPI] final scale=0.5
+[DEBUG DPI] _on_dpi_scale_changed triggered, scale=0.5
+[DEBUG moveEvent] ウィンドウ移動: x=3717, y=543, モデル='モデル1'
+[DEBUG resizeEvent] ウィンドウリサイズ: w=658, h=1391, モデル='モデル1')
+[DEBUG moveEvent] ウィンドウ移動: x=3930, y=562, モデル='モデル1'
+[DEBUG resizeEvent] ウィンドウリサイズ: w=652, h=1391, モデル='モデル1')

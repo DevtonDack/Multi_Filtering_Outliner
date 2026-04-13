@@ -7,8 +7,10 @@ try:
 except ImportError:
     from PySide2 import QtWidgets, QtCore
 
+from ui.mixins.dpi_scale import DpiScaleMixin
 
-class CommonNodeListDialog(QtWidgets.QDialog):
+
+class CommonNodeListDialog(DpiScaleMixin, QtWidgets.QDialog):
     """共通ノードリスト表示用のダイアログ（作業プリセット間で共有）"""
 
     def __init__(self, unique_id="", parent_widget=None, parent=None):
@@ -23,6 +25,7 @@ class CommonNodeListDialog(QtWidgets.QDialog):
                 pass
 
         super(CommonNodeListDialog, self).__init__(parent)
+        self._init_dpi_scale()
 
         self.unique_id = unique_id  # フレーズプリセットのユニークID
         self.parent_widget = parent_widget  # MultiFilteringOutlinerWidgetへの参照
@@ -45,7 +48,7 @@ class CommonNodeListDialog(QtWidgets.QDialog):
         else:
             self.setWindowTitle("共通ダイアログ")
 
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(self._s(400))
         self.setWindowModality(QtCore.Qt.NonModal)
 
         self.create_ui()
@@ -60,20 +63,25 @@ class CommonNodeListDialog(QtWidgets.QDialog):
 
     def create_ui(self):
         """UIを作成"""
+        s = self._ui_scale
         layout = QtWidgets.QVBoxLayout(self)
 
         # 共通ダイアログラベル
-        common_label = QtWidgets.QLabel("共通ダイアログ")
-        common_label.setStyleSheet("font-weight: bold; font-size: 12pt; color: rgb(102, 153, 179);")
-        common_label.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(common_label)
+        self.common_label = QtWidgets.QLabel("共通ダイアログ")
+        self.common_label.setStyleSheet(
+            f"font-weight: bold; font-size: {self._spt(12):.2f}pt; color: rgb(102, 153, 179);"
+        )
+        self.common_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(self.common_label)
 
         # ノード数表示
         self.count_label = QtWidgets.QLabel("ノード数: 0")
+        self.count_label.setStyleSheet(f"font-size: {self._spt(9):.2f}pt;")
         layout.addWidget(self.count_label)
 
         # ノードリストウィジェット
         self.list_widget = QtWidgets.QListWidget()
+        self.list_widget.setStyleSheet(f"QListWidget {{ font-size: {self._spt(9):.2f}pt; }}")
         self.list_widget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)
         self.list_widget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -156,22 +164,59 @@ class CommonNodeListDialog(QtWidgets.QDialog):
         # フィルタリング実行
         match_mode = phrase_preset.get('match_mode', 'any')
 
-        if common_include_configs:
-            matched_nodes = nf.filter_nodes_by_phrase_configs(common_include_configs, 'all')
-        else:
-            matched_nodes = nf.get_all_nodes()
+        # 登録ノードモードの状態
+        show_registered_only = phrase_preset.get('show_registered_only', False)
+        apply_filter_to_registered = phrase_preset.get('apply_filter_to_registered', False)
+        skip_phrase_filter = False
 
-        if common_exclude_configs:
+        if show_registered_only:
+            # 登録ノード集合を母集団にする
+            registered_uuids = phrase_preset.get('registered_node_uuids', [])
+            base_population = []
+            try:
+                import maya.cmds as cmds
+                for uid in registered_uuids:
+                    if not uid:
+                        continue
+                    try:
+                        nodes = cmds.ls(uid, long=True)
+                    except Exception:
+                        nodes = None
+                    if nodes:
+                        base_population.append(nodes[0])
+            except ImportError:
+                pass
+
+            if not apply_filter_to_registered:
+                matched_nodes = list(base_population)
+                skip_phrase_filter = True
+            else:
+                if common_include_configs:
+                    original_get_all = nf.get_all_nodes
+                    nf.get_all_nodes = lambda: list(base_population)
+                    try:
+                        matched_nodes = nf.filter_nodes_by_phrase_configs(common_include_configs, 'all')
+                    finally:
+                        nf.get_all_nodes = original_get_all
+                else:
+                    matched_nodes = list(base_population)
+        else:
+            if common_include_configs:
+                matched_nodes = nf.filter_nodes_by_phrase_configs(common_include_configs, 'all')
+            else:
+                matched_nodes = nf.get_all_nodes()
+
+        if not skip_phrase_filter and common_exclude_configs:
             common_excluded_nodes = nf.filter_nodes_by_phrase_configs(common_exclude_configs, 'any')
             matched_nodes = [node for node in matched_nodes if node not in common_excluded_nodes]
 
-        if include_configs:
+        if not skip_phrase_filter and include_configs:
             original_get_all = nf.get_all_nodes
             nf.get_all_nodes = lambda: matched_nodes
             matched_nodes = nf.filter_nodes_by_phrase_configs(include_configs, match_mode)
             nf.get_all_nodes = original_get_all
 
-        if exclude_configs:
+        if not skip_phrase_filter and exclude_configs:
             excluded_nodes = nf.filter_nodes_by_phrase_configs(exclude_configs, 'any')
             matched_nodes = [node for node in matched_nodes if node not in excluded_nodes]
 
@@ -272,6 +317,26 @@ class CommonNodeListDialog(QtWidgets.QDialog):
         if focused_widget and not self.isAncestorOf(focused_widget):
             QtCore.QTimer.singleShot(0, lambda: focused_widget.setFocus())
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        QtCore.QTimer.singleShot(0, lambda: self._apply_dpi_scale_if_changed())
+
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        if self.isVisible():
+            self.save_current_geometry()
+            self._apply_dpi_scale_if_changed()
+
+    def _on_dpi_scale_changed(self):
+        """DPI スケール変更時に UI を更新"""
+        s = self._ui_scale
+        self.setMinimumWidth(self._s(400))
+        self.common_label.setStyleSheet(
+            f"font-weight: bold; font-size: {self._spt(12):.2f}pt; color: rgb(102, 153, 179);"
+        )
+        self.count_label.setStyleSheet(f"font-size: {self._spt(9):.2f}pt;")
+        self.list_widget.setStyleSheet(f"QListWidget {{ font-size: {self._spt(9):.2f}pt; }}")
+
     def restore_geometry(self):
         """ジオメトリを復元"""
         phrase_preset = self.get_current_phrase_preset()
@@ -309,37 +374,35 @@ class CommonNodeListDialog(QtWidgets.QDialog):
         """ダイアログが閉じられる時"""
         self.update_timer.stop()
 
-
-        # unique_idに一致するフレーズプリセットを全プロジェクト・モデル・作業から検索
-        phrase_preset = None
+        # unique_idに一致するフレーズプリセットをすべて収集
+        # (同一 unique_id を持つプリセットが複数の作業/モデルに存在し得るため、
+        #  最初の 1 件で break してしまうとフラグが残って次回起動時に
+        #  共通ダイアログが意図せず復元されてしまう)
+        matched_presets = []
         if self.parent_widget and self.unique_id:
             for project in self.parent_widget.projects:
                 for model in project.get('models', []):
                     for work in model.get('works', []):
                         for preset in work.get('phrase_presets', []):
                             if preset.get('unique_id') == self.unique_id:
-                                phrase_preset = preset
-                                break
-                        if phrase_preset:
-                            break
-                    if phrase_preset:
-                        break
-                if phrase_preset:
-                    break
+                                matched_presets.append(preset)
 
-        if phrase_preset:
+        if matched_presets:
             geometry = self.geometry()
-            phrase_preset['common_dialog_geometry'] = {
+            geo_data = {
                 'x': geometry.x(),
                 'y': geometry.y(),
                 'width': geometry.width(),
                 'height': geometry.height()
             }
+            closing_from_main = getattr(self, '_closing_from_main', False)
 
-            # メインウィンドウから閉じられた場合はcommon_dialog_openフラグを変更しない
-            if not hasattr(self, '_closing_from_main') or not self._closing_from_main:
-                # ユーザーが直接閉じた場合のみcommon_dialog_openをFalseに設定
-                phrase_preset['common_dialog_open'] = False
+            for preset in matched_presets:
+                preset['common_dialog_geometry'] = geo_data
+                # メインウィンドウから閉じられた場合はフラグを変更しない
+                # (アプリ終了時などに開いていた状態を保持して次回復元するため)
+                if not closing_from_main:
+                    preset['common_dialog_open'] = False
 
             if self.parent_widget:
                 self.parent_widget.save_settings()

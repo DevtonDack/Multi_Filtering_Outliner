@@ -67,9 +67,18 @@ class GeometryManagerMixin:
         else:
             print(f"[DEBUG restore_model_geometry] モデルが見つかりません")
 
+    def showEvent(self, event):
+        """ウィンドウが表示された時に呼ばれる"""
+        super().showEvent(event)
+        from PySide6 import QtCore
+        if hasattr(self, '_apply_dpi_scale_if_changed'):
+            QtCore.QTimer.singleShot(0, lambda: self._apply_dpi_scale_if_changed())
+
     def moveEvent(self, event):
         """ウィンドウが移動された時に呼ばれる"""
         super().moveEvent(event)
+        if hasattr(self, '_apply_dpi_scale_if_changed') and self.isVisible():
+            self._apply_dpi_scale_if_changed()
         if not hasattr(self, '_is_loading') or not self._is_loading:
             new_pos = event.pos()
             model = self.get_current_model()

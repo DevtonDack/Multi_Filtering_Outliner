@@ -7,8 +7,10 @@ try:
 except ImportError:
     from PySide2 import QtWidgets, QtCore
 
+from ui.mixins.dpi_scale import DpiScaleMixin
 
-class NodeListDialog(QtWidgets.QDialog):
+
+class NodeListDialog(DpiScaleMixin, QtWidgets.QDialog):
     """ノードリスト表示用のダイアログ"""
 
     def __init__(self, nodes, list_name="", work_indices=None, phrase_index=-1, dialog_key="", parent_widget=None, parent=None):
@@ -23,6 +25,7 @@ class NodeListDialog(QtWidgets.QDialog):
                 pass
 
         super(NodeListDialog, self).__init__(parent)
+        self._init_dpi_scale()
 
         self.nodes = nodes
         self.list_name = list_name  # リスト名（表示用タイトル）
@@ -61,7 +64,7 @@ class NodeListDialog(QtWidgets.QDialog):
         else:
             window_title = "ノードリスト"
         self.setWindowTitle(window_title)
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(self._s(400))
         # モードレスダイアログに設定（他の操作を可能にする）
         self.setWindowModality(QtCore.Qt.NonModal)
         self.create_ui()
@@ -81,13 +84,15 @@ class NodeListDialog(QtWidgets.QDialog):
 
     def create_ui(self):
         """UIを作成"""
+        s = self._ui_scale
         layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(10)
+        m = self._s(10)
+        layout.setContentsMargins(m, m, m, m)
+        layout.setSpacing(self._s(10))
 
         # ノード数表示
         self.title_label = QtWidgets.QLabel(f"ノードリスト ({len(self.nodes)}個)")
-        self.title_label.setStyleSheet("font-weight: bold; font-size: 10pt;")
+        self.title_label.setStyleSheet(f"font-weight: bold; font-size: {self._spt(10):.2f}pt;")
         layout.addWidget(self.title_label)
 
         # ノードリスト
@@ -367,6 +372,27 @@ class NodeListDialog(QtWidgets.QDialog):
 
         # シグナルのブロックを解除
         self.node_list.blockSignals(False)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        QtCore.QTimer.singleShot(0, lambda: self._apply_dpi_scale_if_changed())
+
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        if self.isVisible():
+            self._apply_dpi_scale_if_changed()
+
+    def _on_dpi_scale_changed(self):
+        """DPI スケール変更時に UI を更新"""
+        s = self._ui_scale
+        m = self._s(10)
+        layout = self.layout()
+        if layout:
+            layout.setContentsMargins(m, m, m, m)
+            layout.setSpacing(self._s(10))
+        self.title_label.setStyleSheet(f"font-weight: bold; font-size: {self._spt(10):.2f}pt;")
+        self.setMinimumWidth(self._s(400))
+        self.node_list.setStyleSheet(f"QListWidget {{ font-size: {self._spt(9):.2f}pt; }}")
 
     def restore_geometry(self):
         """ダイアログのジオメトリを復元"""

@@ -15,6 +15,16 @@ class NodeListManagerMixin:
         """ノードリストを更新"""
         import maya.cmds as cmds
 
+        # 登録ノード表示モードの状態を取得
+        show_registered_only = (
+            self.show_registered_only_check.isChecked()
+            if hasattr(self, 'show_registered_only_check') else False
+        )
+        apply_filter_to_registered = (
+            self.apply_filter_to_registered_check.isChecked()
+            if hasattr(self, 'apply_filter_to_registered_check') else False
+        )
+
         # 共通フィルター設定を収集（有効なもののみ、包含/除外を分ける）
         common_include_configs = []
         common_exclude_configs = []
@@ -64,29 +74,54 @@ class NodeListManagerMixin:
         # 共通フィルター使用チェックボックスの状態を確認
         use_common_filter = self.use_common_filter_check.isChecked()
 
-        # 包含フレーズと共通フィルターの両方がない場合はリストをクリア
-        if not include_configs and not (use_common_filter and common_include_configs):
-            self.node_list.clear()
-            self.current_nodes = []
-            return
+        # 登録ノードモード: 母集団を「登録ノード集合」に置き換える
+        skip_phrase_filter = False
+        if show_registered_only:
+            preset = self.get_current_phrase_preset()
+            registered_uuids = preset.get('registered_node_uuids', []) if preset else []
+            base_population = self.uuids_to_node_paths(registered_uuids)
 
-        # 1. まず共通フィルターを適用（共通フィルター使用が有効な場合のみ）
-        if use_common_filter and common_include_configs:
-            # 共通フィルターで最初のフィルタリング（常に'all'モード - すべての共通フィルターに一致）
-            matched_nodes = multi_filtering_outliner.filter_nodes_by_phrase_configs(common_include_configs, 'all')
+            if not apply_filter_to_registered:
+                # フィルタは適用せず、登録ノードをそのまま表示する
+                matched_nodes = list(base_population)
+                skip_phrase_filter = True
+            else:
+                # 登録ノード集合を「全ノード」とみなして以降のフィルター処理に渡す
+                if use_common_filter and common_include_configs:
+                    original_get_all = multi_filtering_outliner.get_all_nodes
+                    multi_filtering_outliner.get_all_nodes = lambda: list(base_population)
+                    try:
+                        matched_nodes = multi_filtering_outliner.filter_nodes_by_phrase_configs(
+                            common_include_configs, 'all'
+                        )
+                    finally:
+                        multi_filtering_outliner.get_all_nodes = original_get_all
+                else:
+                    matched_nodes = list(base_population)
         else:
-            # 共通フィルターがない、または使用しない場合はすべてのノードから開始
-            matched_nodes = multi_filtering_outliner.get_all_nodes()
+            # 包含フレーズと共通フィルターの両方がない場合はリストをクリア
+            if not include_configs and not (use_common_filter and common_include_configs):
+                self.node_list.clear()
+                self.current_nodes = []
+                return
+
+            # 1. まず共通フィルターを適用（共通フィルター使用が有効な場合のみ）
+            if use_common_filter and common_include_configs:
+                # 共通フィルターで最初のフィルタリング（常に'all'モード - すべての共通フィルターに一致）
+                matched_nodes = multi_filtering_outliner.filter_nodes_by_phrase_configs(common_include_configs, 'all')
+            else:
+                # 共通フィルターがない、または使用しない場合はすべてのノードから開始
+                matched_nodes = multi_filtering_outliner.get_all_nodes()
 
         # 2. 共通フィルターの除外を適用（共通フィルター使用が有効な場合のみ）
-        if use_common_filter and common_exclude_configs:
+        if not skip_phrase_filter and use_common_filter and common_exclude_configs:
             common_excluded_nodes = multi_filtering_outliner.filter_nodes_by_phrase_configs(common_exclude_configs, 'any')
             matched_nodes = [node for node in matched_nodes if node not in common_excluded_nodes]
 
         # 3. フレーズプリセットフィルターを適用（共通フィルター結果をさらにフィルター）
         # 包含フィルタリング実行（フレーズごとの設定を使用）
         # 共通フィルターで絞り込まれたノードのみを対象にする
-        if include_configs:
+        if not skip_phrase_filter and include_configs:
             # 一時的にすべてのノードを取得する関数を上書き
             original_get_all = multi_filtering_outliner.get_all_nodes
             multi_filtering_outliner.get_all_nodes = lambda: matched_nodes
@@ -97,7 +132,7 @@ class NodeListManagerMixin:
             multi_filtering_outliner.get_all_nodes = original_get_all
 
         # 4. フレーズプリセットの除外フィルタリング実行（除外フレーズがある場合）
-        if exclude_configs:
+        if not skip_phrase_filter and exclude_configs:
             # 除外フレーズに一致するノードを取得（除外は常に'any'モード）
             excluded_nodes = multi_filtering_outliner.filter_nodes_by_phrase_configs(exclude_configs, 'any')
             # 包含リストから除外リストを削除

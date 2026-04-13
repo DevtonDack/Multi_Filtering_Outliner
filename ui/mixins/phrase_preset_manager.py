@@ -302,6 +302,13 @@ class PhrasePresetManagerMixin:
         phrase_preset['use_common_filter'] = self.use_common_filter_check.isChecked()
         phrase_preset['unique_id'] = self.preset_id_input.text().strip()
 
+        # ノード登録機能関連 (UI 状態を保存)
+        if hasattr(self, 'show_registered_only_check'):
+            phrase_preset['show_registered_only'] = self.show_registered_only_check.isChecked()
+        if hasattr(self, 'apply_filter_to_registered_check'):
+            phrase_preset['apply_filter_to_registered'] = self.apply_filter_to_registered_check.isChecked()
+        # registered_node_uuids 自体は登録/解除操作でのみ書き換える
+
         # dialog_open と common_dialog_open は既存の値を保持（削除しない）
         # これらはダイアログの開閉状態を管理するフィールドなので、UIから読み取るものではない
 
@@ -352,6 +359,22 @@ class PhrasePresetManagerMixin:
             # 共通フィルター使用チェックを復元
             use_common_filter = preset_data.get('use_common_filter', True)
             self.use_common_filter_check.setChecked(use_common_filter)
+
+            # ノード登録機能関連の復元 (デフォルト値で補完)
+            preset_data.setdefault('registered_node_uuids', [])
+            preset_data.setdefault('show_registered_only', False)
+            preset_data.setdefault('apply_filter_to_registered', False)
+            if hasattr(self, 'show_registered_only_check'):
+                self.show_registered_only_check.blockSignals(True)
+                self.show_registered_only_check.setChecked(preset_data['show_registered_only'])
+                self.show_registered_only_check.blockSignals(False)
+            if hasattr(self, 'apply_filter_to_registered_check'):
+                self.apply_filter_to_registered_check.blockSignals(True)
+                self.apply_filter_to_registered_check.setChecked(preset_data['apply_filter_to_registered'])
+                self.apply_filter_to_registered_check.setEnabled(preset_data['show_registered_only'])
+                self.apply_filter_to_registered_check.blockSignals(False)
+            if hasattr(self, 'registered_buttons_widget'):
+                self.registered_buttons_widget.setVisible(preset_data['show_registered_only'])
 
             # プリセットIDを復元
             unique_id = preset_data.get('unique_id', '')
@@ -507,3 +530,153 @@ class PhrasePresetManagerMixin:
         self.save_settings()
 
         print(f"フレーズプリセット '{new_name}' を作成しました")
+
+    # ========== Node Registration (UUID ベース) ==========
+
+    @staticmethod
+    def uuids_to_node_paths(uuids):
+        """UUID リストを現在のシーン上のノードパスへ解決する。
+        解決できない UUID は単に除外（データからは消さない）。
+        """
+        if not uuids:
+            return []
+        try:
+            import maya.cmds as cmds
+        except ImportError:
+            return []
+        paths = []
+        for uid in uuids:
+            if not uid:
+                continue
+            try:
+                nodes = cmds.ls(uid, long=True)
+            except Exception:
+                nodes = None
+            if nodes:
+                paths.append(nodes[0])
+        return paths
+
+    def on_show_registered_only_changed(self, state):
+        """チェックボックス A の状態が変更された時"""
+        is_on = self.show_registered_only_check.isChecked()
+        # B の有効/無効を切り替え
+        if hasattr(self, 'apply_filter_to_registered_check'):
+            self.apply_filter_to_registered_check.setEnabled(is_on)
+        # 登録操作ボタン行の表示切り替え
+        if hasattr(self, 'registered_buttons_widget'):
+            self.registered_buttons_widget.setVisible(is_on)
+        # 永続化 + リスト再描画
+        self.on_filter_changed()
+
+    def on_register_selected_nodes(self):
+        """Maya で選択中のノードを現在のフレーズプリセットに登録"""
+        preset = self.get_current_phrase_preset()
+        if preset is None:
+            return
+        try:
+            import maya.cmds as cmds
+        except ImportError:
+            return
+        selected = cmds.ls(selection=True, long=True) or []
+        if not selected:
+            QtWidgets.QMessageBox.information(
+                self, "ノード登録", "Maya で登録するノードを選択してください。"
+            )
+            return
+        existing = list(preset.get('registered_node_uuids', []))
+        existing_set = set(existing)
+        added = 0
+        for node in selected:
+            try:
+                uids = cmds.ls(node, uuid=True)
+            except Exception:
+                uids = None
+            if not uids:
+                continue
+            uid = uids[0]
+            if uid and uid not in existing_set:
+                existing.append(uid)
+                existing_set.add(uid)
+                added += 1
+        preset['registered_node_uuids'] = existing
+        self.save_settings()
+        self.on_refresh()
+        # 開いているダイアログにも反映
+        if hasattr(self, 'refresh_common_dialogs'):
+            self.refresh_common_dialogs()
+        if hasattr(self, 'refresh_integrated_dialogs'):
+            self.refresh_integrated_dialogs()
+        print(f"[ノード登録] {added} 個のノードを登録しました (合計 {len(existing)})")
+
+    def on_unregister_selected_nodes(self):
+        """メインリストで選択中のノードを登録解除"""
+        preset = self.get_current_phrase_preset()
+        if preset is None:
+            return
+        registered = list(preset.get('registered_node_uuids', []))
+        if not registered:
+            return
+        try:
+            import maya.cmds as cmds
+        except ImportError:
+            return
+
+        # メインリストの選択ノード（フルパス）を取得
+        selected_paths = []
+        for item in self.node_list.selectedItems():
+            path = item.data(QtCore.Qt.UserRole)
+            if path:
+                selected_paths.append(path)
+        if not selected_paths:
+            QtWidgets.QMessageBox.information(
+                self, "登録解除", "リストで解除するノードを選択してください。"
+            )
+            return
+
+        # パス → UUID
+        uuids_to_remove = set()
+        for path in selected_paths:
+            try:
+                uids = cmds.ls(path, uuid=True)
+            except Exception:
+                uids = None
+            if uids:
+                uuids_to_remove.add(uids[0])
+        if not uuids_to_remove:
+            return
+
+        new_registered = [u for u in registered if u not in uuids_to_remove]
+        removed = len(registered) - len(new_registered)
+        preset['registered_node_uuids'] = new_registered
+        self.save_settings()
+        self.on_refresh()
+        if hasattr(self, 'refresh_common_dialogs'):
+            self.refresh_common_dialogs()
+        if hasattr(self, 'refresh_integrated_dialogs'):
+            self.refresh_integrated_dialogs()
+        print(f"[ノード登録] {removed} 個のノードを登録解除しました")
+
+    def on_clear_registered_nodes(self):
+        """登録ノードを一括クリア"""
+        preset = self.get_current_phrase_preset()
+        if preset is None:
+            return
+        count = len(preset.get('registered_node_uuids', []))
+        if count == 0:
+            return
+        reply = QtWidgets.QMessageBox.question(
+            self, "一括クリアの確認",
+            f"このフレーズプリセットに登録されている {count} 個のノードをすべて解除しますか？",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No,
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            return
+        preset['registered_node_uuids'] = []
+        self.save_settings()
+        self.on_refresh()
+        if hasattr(self, 'refresh_common_dialogs'):
+            self.refresh_common_dialogs()
+        if hasattr(self, 'refresh_integrated_dialogs'):
+            self.refresh_integrated_dialogs()
+        print(f"[ノード登録] {count} 個のノードを一括クリアしました")
