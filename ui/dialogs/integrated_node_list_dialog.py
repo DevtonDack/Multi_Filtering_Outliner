@@ -27,6 +27,7 @@ except ImportError:
 # 先にキャッシュされていると ImportError になるため使わない。
 from tools import multi_filtering_outliner as _mfo
 from ui.mixins.dpi_scale import DpiScaleMixin
+from ui.dialogs.node_type_filter_dialog import NODE_TYPE_ENTRIES, NodeTypeFilterDialog
 
 
 MAX_ROWS = 100
@@ -886,6 +887,8 @@ class IntegratedNodeListDialog(DpiScaleMixin, QtWidgets.QDialog):
         apply_filter_to_registered = phrase_preset.get('apply_filter_to_registered', False)
         skip_phrase_filter = False
 
+        include_hierarchy = phrase_preset.get('include_hierarchy', False)
+
         if show_registered_only:
             registered_uuids = phrase_preset.get('registered_node_uuids', [])
             base_population = []
@@ -900,6 +903,26 @@ class IntegratedNodeListDialog(DpiScaleMixin, QtWidgets.QDialog):
                         nodes = None
                     if nodes:
                         base_population.append(nodes[0])
+
+                # 子階層を含む場合は各登録ノードの子孫を追加
+                if include_hierarchy and base_population:
+                    seen = set()
+                    expanded = []
+                    for node in base_population:
+                        if node not in seen:
+                            seen.add(node)
+                            expanded.append(node)
+                        try:
+                            descendants = cmds.listRelatives(
+                                node, allDescendents=True, fullPath=True
+                            ) or []
+                        except Exception:
+                            descendants = []
+                        for desc in descendants:
+                            if desc not in seen:
+                                seen.add(desc)
+                                expanded.append(desc)
+                    base_population = expanded
             except ImportError:
                 pass
 
@@ -945,12 +968,83 @@ class IntegratedNodeListDialog(DpiScaleMixin, QtWidgets.QDialog):
             except ImportError:
                 pass
 
+        # ノードタイプフィルターを適用
+        node_type_filter = phrase_preset.get('node_type_filter', None)
+        if node_type_filter and not NodeTypeFilterDialog.is_default(node_type_filter):
+            matched_nodes = self._apply_node_type_filter_to_list(
+                matched_nodes, node_type_filter
+            )
+
         matched_nodes = sorted(matched_nodes, key=lambda x: x.split('|')[-1].lower())
 
         work_name = work.get('name', '') if work else ''
         preset_name = phrase_preset.get('name', '')
         title = f"{work_name} / {preset_name} (ID: {uid})"
         cell.set_nodes(matched_nodes, title)
+
+    @staticmethod
+    def _apply_node_type_filter_to_list(nodes, node_type_filter):
+        """node_list_manager._apply_node_type_filter と同等のロジック（スタンドアロン版）"""
+        try:
+            import maya.cmds as cmds
+        except Exception:
+            return nodes
+
+        other_enabled = node_type_filter.get("その他", True)
+
+        allowed_types = set()
+        for display_name, maya_types in NODE_TYPE_ENTRIES:
+            if display_name == "その他":
+                continue
+            if node_type_filter.get(display_name, True):
+                allowed_types.update(maya_types)
+
+        all_known_types = set()
+        for _, maya_types in NODE_TYPE_ENTRIES:
+            all_known_types.update(maya_types)
+
+        try:
+            node_types = {n: cmds.nodeType(n) for n in nodes}
+        except Exception:
+            node_types = {}
+            for n in nodes:
+                try:
+                    node_types[n] = cmds.nodeType(n)
+                except Exception:
+                    pass
+
+        result = []
+        for node in nodes:
+            nt = node_types.get(node)
+            if nt is None:
+                continue
+            if nt in allowed_types:
+                result.append(node)
+                continue
+            matched_allowed = False
+            for t in allowed_types:
+                try:
+                    if cmds.objectType(node, isAType=t):
+                        matched_allowed = True
+                        break
+                except Exception:
+                    pass
+            if matched_allowed:
+                result.append(node)
+                continue
+            if other_enabled:
+                is_known = nt in all_known_types
+                if not is_known:
+                    for t in all_known_types:
+                        try:
+                            if cmds.objectType(node, isAType=t):
+                                is_known = True
+                                break
+                        except Exception:
+                            pass
+                if not is_known:
+                    result.append(node)
+        return result
 
     # ========== ジオメトリ / 保存 ==========
 

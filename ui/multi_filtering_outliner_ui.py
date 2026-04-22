@@ -16,7 +16,7 @@ from ui.mixins import (GeometryManagerMixin, SettingsManagerMixin,
                        PresetImportExportMixin, PresetMigrationMixin)
 from ui.mixins.dpi_scale import DpiScaleMixin
 from ui.widgets import FlowLayout, EditableButton, DraggablePhraseWidget
-from ui.dialogs import PresetImportDialog, NodeListDialog, CommonNodeListDialog
+from ui.dialogs import PresetImportDialog, NodeListDialog, CommonNodeListDialog, NodeTypeFilterDialog, DEFAULT_NODE_TYPE_FILTER
 import sys
 
 
@@ -471,6 +471,12 @@ class MultiFilteringOutlinerWidget(DpiScaleMixin, HierarchyManagerMixin,
         self.preset_id_input.editingFinished.connect(self.on_preset_id_editing_finished)
         id_layout.addWidget(self.preset_id_input)
 
+        self.node_type_filter_btn = QtWidgets.QPushButton("ノードタイプ...")
+        self.node_type_filter_btn.setFixedHeight(b25)
+        self.node_type_filter_btn.setToolTip("表示するノードタイプを設定")
+        self.node_type_filter_btn.clicked.connect(self.on_open_node_type_filter)
+        id_layout.addWidget(self.node_type_filter_btn)
+
         id_layout.addStretch()
 
         phrase_layout.addLayout(id_layout)
@@ -553,6 +559,14 @@ class MultiFilteringOutlinerWidget(DpiScaleMixin, HierarchyManagerMixin,
         self.apply_filter_to_registered_check.stateChanged.connect(self.on_filter_changed)
         registered_checks_layout.addWidget(self.apply_filter_to_registered_check)
 
+        # チェックボックス C: 子階層を含む (A がオンのときのみ有効)
+        self.include_hierarchy_check = QtWidgets.QCheckBox("子階層を含む")
+        self.include_hierarchy_check.setChecked(False)
+        self.include_hierarchy_check.setEnabled(False)
+        self.include_hierarchy_check.setToolTip("登録ノードの子孫ノードもすべて表示する")
+        self.include_hierarchy_check.stateChanged.connect(self.on_filter_changed)
+        registered_checks_layout.addWidget(self.include_hierarchy_check)
+
         registered_checks_layout.addStretch()
         list_layout.addLayout(registered_checks_layout)
 
@@ -621,6 +635,34 @@ class MultiFilteringOutlinerWidget(DpiScaleMixin, HierarchyManagerMixin,
         action_buttons_layout.addWidget(integrated_dialog_btn)
 
         phrase_preset_content_layout.addLayout(action_buttons_layout)
+
+    def on_open_node_type_filter(self):
+        """ノードタイプフィルター設定ダイアログを開く"""
+        preset = self.get_current_phrase_preset()
+        if preset is None:
+            return
+        current_filter = preset.get('node_type_filter', dict(DEFAULT_NODE_TYPE_FILTER))
+        dlg = NodeTypeFilterDialog(current_filter=current_filter, parent=self)
+        if dlg.exec() == NodeTypeFilterDialog.Accepted:
+            new_filter = dlg.get_filter()
+            preset['node_type_filter'] = new_filter
+            self._update_node_type_filter_btn_style()
+            self.on_refresh()
+            self.save_settings()
+
+    def _update_node_type_filter_btn_style(self):
+        """フィルターが非デフォルト状態のときボタンを強調表示"""
+        if not hasattr(self, 'node_type_filter_btn'):
+            return
+        preset = self.get_current_phrase_preset()
+        f = (preset.get('node_type_filter') or DEFAULT_NODE_TYPE_FILTER) if preset else DEFAULT_NODE_TYPE_FILTER
+        is_default = NodeTypeFilterDialog.is_default(f)
+        if is_default:
+            self.node_type_filter_btn.setStyleSheet("")
+        else:
+            self.node_type_filter_btn.setStyleSheet(
+                "background-color: rgb(100, 140, 80); color: white;"
+            )
 
     def _on_dpi_scale_changed(self):
         """DPI スケール変更時に全ウィジェットのフォント・スペーシングを更新"""

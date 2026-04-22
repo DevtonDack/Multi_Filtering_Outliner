@@ -147,6 +147,10 @@ class FilterManagerMixin:
 
     def on_filter_changed(self):
         """フィルタが変更された時（自動更新）"""
+        # 読み込み中は保存・リフレッシュを行わない
+        if getattr(self, '_is_loading', False):
+            return
+
         # 現在のフレーズプリセットの状態を保存（ダイアログが最新の設定を参照できるように）
         if self.current_phrase_preset_index >= 0:
             self.save_current_phrase_preset_state()

@@ -3,9 +3,29 @@
 NodeListManagerMixin - Node filtering and selection logic
 """
 
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore, QtGui
 from ui.widgets import DraggablePhraseWidget
 from tools import multi_filtering_outliner
+from ui.dialogs.node_type_filter_dialog import NODE_TYPE_ENTRIES, DEFAULT_NODE_TYPE_FILTER
+
+
+def _expand_with_hierarchy(nodes, cmds):
+    """nodes の各ノードとその子孫をすべて含むリストを返す（重複なし、順序保持）"""
+    seen = set()
+    result = []
+    for node in nodes:
+        if node not in seen:
+            seen.add(node)
+            result.append(node)
+        try:
+            descendants = cmds.listRelatives(node, allDescendents=True, fullPath=True) or []
+        except Exception:
+            descendants = []
+        for desc in descendants:
+            if desc not in seen:
+                seen.add(desc)
+                result.append(desc)
+    return result
 
 
 class NodeListManagerMixin:
@@ -75,11 +95,20 @@ class NodeListManagerMixin:
         use_common_filter = self.use_common_filter_check.isChecked()
 
         # 登録ノードモード: 母集団を「登録ノード集合」に置き換える
+        include_hierarchy = (
+            self.include_hierarchy_check.isChecked()
+            if hasattr(self, 'include_hierarchy_check') else False
+        )
+
         skip_phrase_filter = False
         if show_registered_only:
             preset = self.get_current_phrase_preset()
             registered_uuids = preset.get('registered_node_uuids', []) if preset else []
             base_population = self.uuids_to_node_paths(registered_uuids)
+
+            # 子階層を含む場合は各登録ノードの子孫を追加
+            if include_hierarchy and base_population:
+                base_population = _expand_with_hierarchy(base_population, cmds)
 
             if not apply_filter_to_registered:
                 # フィルタは適用せず、登録ノードをそのまま表示する
@@ -99,12 +128,6 @@ class NodeListManagerMixin:
                 else:
                     matched_nodes = list(base_population)
         else:
-            # 包含フレーズと共通フィルターの両方がない場合はリストをクリア
-            if not include_configs and not (use_common_filter and common_include_configs):
-                self.node_list.clear()
-                self.current_nodes = []
-                return
-
             # 1. まず共通フィルターを適用（共通フィルター使用が有効な場合のみ）
             if use_common_filter and common_include_configs:
                 # 共通フィルターで最初のフィルタリング（常に'all'モード - すべての共通フィルターに一致）
@@ -143,6 +166,21 @@ class NodeListManagerMixin:
             import maya.cmds as cmds
             matched_nodes = [node for node in matched_nodes if cmds.objectType(node, isAType='dagNode')]
 
+        # フィルターが一切ない場合は全ノードを上限 1000 件に制限
+        _NO_FILTER_LIMIT = 1000
+        has_any_filter = (
+            include_configs or exclude_configs
+            or (use_common_filter and (common_include_configs or common_exclude_configs))
+            or skip_phrase_filter  # 登録ノードモードは件数制限なし
+        )
+        no_filter_truncated = False
+        if not has_any_filter and len(matched_nodes) > _NO_FILTER_LIMIT:
+            matched_nodes = matched_nodes[:_NO_FILTER_LIMIT]
+            no_filter_truncated = True
+
+        # ノードタイプフィルターを適用
+        matched_nodes = self._apply_node_type_filter(matched_nodes)
+
         # ノードをアルファベット順でソート（ショートネーム基準）
         matched_nodes_sorted = sorted(matched_nodes, key=lambda x: x.split('|')[-1].lower())
 
@@ -161,6 +199,17 @@ class NodeListManagerMixin:
 
         # リストを更新
         self.node_list.clear()
+
+        # フィルターなし上限超過時の警告アイテムを先頭に追加
+        if no_filter_truncated:
+            warn_item = QtWidgets.QListWidgetItem(
+                f"⚠ フィルターなし: 先頭 {_NO_FILTER_LIMIT} 件のみ表示"
+            )
+            warn_item.setForeground(QtGui.QColor(255, 220, 0))
+            warn_item.setFlags(warn_item.flags() & ~QtCore.Qt.ItemIsSelectable)
+            warn_item.setData(QtCore.Qt.UserRole, None)
+            self.node_list.addItem(warn_item)
+
         for node in matched_nodes_sorted:
             short_name = node.split('|')[-1]
             item = QtWidgets.QListWidgetItem(short_name)
@@ -175,6 +224,87 @@ class NodeListManagerMixin:
         self.node_list.blockSignals(False)
 
         print(f"{len(matched_nodes_sorted)}個のノードが見つかりました")
+
+    def _apply_node_type_filter(self, nodes):
+        """現在のフレーズプリセットのノードタイプフィルターを適用して nodes を絞り込む"""
+        import maya.cmds as cmds
+
+        preset = self.get_current_phrase_preset() if hasattr(self, 'get_current_phrase_preset') else None
+        node_type_filter = preset.get('node_type_filter', None) if preset else None
+
+        # フィルター未設定またはすべて True の場合はそのまま返す
+        if not node_type_filter:
+            return nodes
+        from ui.dialogs.node_type_filter_dialog import NodeTypeFilterDialog
+        if NodeTypeFilterDialog.is_default(node_type_filter):
+            return nodes
+
+        # 「その他」が有効かどうか
+        other_enabled = node_type_filter.get("その他", True)
+
+        # 有効なタイプのフラットセットを構築
+        allowed_types = set()
+        for display_name, maya_types in NODE_TYPE_ENTRIES:
+            if display_name == "その他":
+                continue
+            if node_type_filter.get(display_name, True):
+                allowed_types.update(maya_types)
+
+        # 既知の全タイプセット（「その他」判定用）
+        all_known_types = set()
+        for _, maya_types in NODE_TYPE_ENTRIES:
+            all_known_types.update(maya_types)
+
+        # nodeType の一括取得でループ内の cmds 呼び出しを削減
+        try:
+            node_types = {n: cmds.nodeType(n) for n in nodes}
+        except Exception:
+            node_types = {}
+            for n in nodes:
+                try:
+                    node_types[n] = cmds.nodeType(n)
+                except Exception:
+                    pass
+
+        result = []
+        for node in nodes:
+            nt = node_types.get(node)
+            if nt is None:
+                continue
+
+            # 直接タイプが許可リストに含まれる
+            if nt in allowed_types:
+                result.append(node)
+                continue
+
+            # 継承チェック（例: directionalLight は light のサブタイプ）
+            matched_allowed = False
+            for t in allowed_types:
+                try:
+                    if cmds.objectType(node, isAType=t):
+                        matched_allowed = True
+                        break
+                except Exception:
+                    pass
+            if matched_allowed:
+                result.append(node)
+                continue
+
+            # 「その他」が有効なら、既知タイプに非該当のノードを通す
+            if other_enabled:
+                is_known = nt in all_known_types
+                if not is_known:
+                    for t in all_known_types:
+                        try:
+                            if cmds.objectType(node, isAType=t):
+                                is_known = True
+                                break
+                        except Exception:
+                            pass
+                if not is_known:
+                    result.append(node)
+
+        return result
 
     def on_select_nodes(self):
         """選択されたノードをMayaで選択"""

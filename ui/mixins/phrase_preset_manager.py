@@ -307,6 +307,8 @@ class PhrasePresetManagerMixin:
             phrase_preset['show_registered_only'] = self.show_registered_only_check.isChecked()
         if hasattr(self, 'apply_filter_to_registered_check'):
             phrase_preset['apply_filter_to_registered'] = self.apply_filter_to_registered_check.isChecked()
+        if hasattr(self, 'include_hierarchy_check'):
+            phrase_preset['include_hierarchy'] = self.include_hierarchy_check.isChecked()
         # registered_node_uuids 自体は登録/解除操作でのみ書き換える
 
         # dialog_open と common_dialog_open は既存の値を保持（削除しない）
@@ -364,17 +366,29 @@ class PhrasePresetManagerMixin:
             preset_data.setdefault('registered_node_uuids', [])
             preset_data.setdefault('show_registered_only', False)
             preset_data.setdefault('apply_filter_to_registered', False)
+            preset_data.setdefault('include_hierarchy', False)
+            show_reg = preset_data['show_registered_only']
             if hasattr(self, 'show_registered_only_check'):
                 self.show_registered_only_check.blockSignals(True)
-                self.show_registered_only_check.setChecked(preset_data['show_registered_only'])
+                self.show_registered_only_check.setChecked(show_reg)
                 self.show_registered_only_check.blockSignals(False)
             if hasattr(self, 'apply_filter_to_registered_check'):
                 self.apply_filter_to_registered_check.blockSignals(True)
                 self.apply_filter_to_registered_check.setChecked(preset_data['apply_filter_to_registered'])
-                self.apply_filter_to_registered_check.setEnabled(preset_data['show_registered_only'])
+                self.apply_filter_to_registered_check.setEnabled(show_reg)
                 self.apply_filter_to_registered_check.blockSignals(False)
+            if hasattr(self, 'include_hierarchy_check'):
+                self.include_hierarchy_check.blockSignals(True)
+                self.include_hierarchy_check.setChecked(preset_data['include_hierarchy'])
+                self.include_hierarchy_check.setEnabled(show_reg)
+                self.include_hierarchy_check.blockSignals(False)
             if hasattr(self, 'registered_buttons_widget'):
-                self.registered_buttons_widget.setVisible(preset_data['show_registered_only'])
+                self.registered_buttons_widget.setVisible(show_reg)
+
+            # ノードタイプフィルターのデフォルト補完とボタン状態更新
+            preset_data.setdefault('node_type_filter', None)
+            if hasattr(self, '_update_node_type_filter_btn_style'):
+                self._update_node_type_filter_btn_style()
 
             # プリセットIDを復元
             unique_id = preset_data.get('unique_id', '')
@@ -559,9 +573,11 @@ class PhrasePresetManagerMixin:
     def on_show_registered_only_changed(self, state):
         """チェックボックス A の状態が変更された時"""
         is_on = self.show_registered_only_check.isChecked()
-        # B の有効/無効を切り替え
+        # B・C の有効/無効を切り替え
         if hasattr(self, 'apply_filter_to_registered_check'):
             self.apply_filter_to_registered_check.setEnabled(is_on)
+        if hasattr(self, 'include_hierarchy_check'):
+            self.include_hierarchy_check.setEnabled(is_on)
         # 登録操作ボタン行の表示切り替え
         if hasattr(self, 'registered_buttons_widget'):
             self.registered_buttons_widget.setVisible(is_on)

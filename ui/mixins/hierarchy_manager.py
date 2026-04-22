@@ -42,6 +42,8 @@ class HierarchyManagerMixin:
                     'registered_node_uuids': [],
                     'show_registered_only': False,
                     'apply_filter_to_registered': False,
+                    'include_hierarchy': False,
+                    'node_type_filter': None,  # None = すべて表示（デフォルト）
                 }
             ]
         }
